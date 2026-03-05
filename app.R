@@ -1,3 +1,8 @@
+library(shiny)
+library(shinydashboard)
 
-# Run the application
-shinyApp(ui = ui, server = server)
+source("global.R", local = TRUE)
+source("ui.R", local = TRUE)
+source("server.R", local = TRUE)
+
+shinyApp(ui, server)
