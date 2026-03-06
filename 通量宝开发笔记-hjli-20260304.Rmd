@@ -1,0 +1,89 @@
+---
+title: "通量宝开发笔记-hjli-20260304"
+author: "hjli"
+date: "2026-03-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1 利用renv进行版本控制
+```{r }
+# 在项目目录下初始化 renv 环境
+renv::init()
+
+# 将需要的包从全局库复制到 renv
+renv::install("dplyr", rebuild = FALSE)
+renv::install("gert", rebuild = FALSE)
+
+# 将所有包从全局库复制到 renv（不推荐，并不需要所有包）
+# renv::snapshot(type = "all")
+
+```
+
+```{r }
+# 快照当前环境状态
+renv::snapshot()
+
+# 恢复环境
+renv::restore()
+
+```
+
+
+# 2 Shiny 项目结构
+
+
+
+# 3 项目部署
+
+```{r}
+# 在Posit Connect Cloud / shinyapps.io进行部署
+# 地址：https://connect.posit.cloud/
+
+```
+
+
+
+```{r}
+install.packages("rsconnect")  # 如果你本机还没装（只装一次）
+
+
+rsconnect::writeManifest(appDir = ".", appPrimaryDoc = "app.R")
+
+
+```
+
+
+# 4 项目更新()
+
+将本地文件更新到github,更新完成之后,代开https://connect.posit.cloud/panghu,再republish
+```{r }
+library(gert)
+# 添加远程仓库（将本地与 GitHub 上的空仓库连接）
+gert::git_remote_add("git@github.com:panghudebaba/FluxWatch-v0.1.git", name = "origin")
+
+# 本地项目位置
+git_dir <- "E:/shinyapp/FluxWatch"
+
+# 拉取远程更新并自动合并
+gert::git_pull(repo = git_dir)
+
+# 查看本地文件更新状态
+gert::git_status(repo = git_dir)
+
+# 添加所有修改的文件到暂存区
+gert::git_add(".", repo = git_dir)
+
+# 提交更改（生成一个版本）
+gert::git_commit("版本2", repo = git_dir)
+
+# 推送更改到远程仓库
+gert::git_push(repo = git_dir)
+
+```
+
+
+
