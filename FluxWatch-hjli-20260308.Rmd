@@ -1,0 +1,72 @@
+---
+title: "Fluxwatch开发文件-20260308"
+author: "hmlu"
+date: "2026-03-08"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1 功能定位
+
+### 1.1 通量宝描述
+
+通量宝：流域水文水质数据上传、清洗、统计与可视化分析，监测断面物质通量计算、不确定性分析、断面通量监测方案制定和优化，数据分析结果导出和研究报告编制。
+
+FluxWatch: This platform enables the uploading, cleaning, statistical analysis, and visualization of watershed hydrological and water quality data; material flux calculation at flux monitoring stations; flux monitoring schemes formulation and optimization; compilation of research reports *etc*.
+
+通量宝：南京水利科学研究院生态水文与水资源保护研究团队开发的流域水文水环境数据交互式分析平台软件。该平台可实现流域水文水质数据上传、清洗、统计与可视化分析，监测断面物质通量计算、不确定性分析、断面通量监测方案制定和优化，数据分析结果导出和研究报告编制。
+
+FluxWatch: An interactive data analysis platform software for watershed hydrology and water environment developped by the Ecohydrology and Water Resources Protection Research Team from [Nanjing Hydraulic Research Institute (NHRI)](www.nhri.cn). This platform enables the uploading, cleaning, statistical analysis, and visualization of watershed hydrological and water quality data; material flux calculating at flux monitoring stations and the uncertainty analysis; flux monitoring schemes formulation and optimization; data analysis results downloading; compilation of research reports *etc*.
+
+### 1.2 服务对象
+
+从事水文水资源和水生态水环境研究的研究生、学者和研究人员。
+
+### 1.3 语言
+
+采用中英文双语。
+
+## 2 界面设计
+
+### 2.1主界面布局
+
+-   界面最上方：左侧为本软件的logo，后期优化设计logo，在此之后为本软件的中英文一句介绍，最右侧为版本号V 0.01
+
+![LOGO](images/test1.bmp){width="217"}
+
+-   界面左侧为软件的主要功能分区按钮，点击不同按钮切换。
+
+平台简介Introduction，
+
+1、数据上传与整理清洗，Data Upload, Sorting & Cleaning
+
+2、可视分析与统计处理，Data Visualization & Statistical Analysis
+
+3、通量计算和结果展示，Flux calculation & Result Presentation
+
+4、监测方案设计与优化， Monitoring Scheme Design & Optimization
+
+5、报告编制与成果输出，Report Compilation & Result Output
+
+关于我们，About us
+
+免责声明，Disclaimer
+
+-   界面右侧
+
+界面中间为通量宝的大幅logo，与其并排的为篆书”通量宝“三个字和英文”FluxWatch"，强化视觉宣传效果。
+
+介绍本软件开发背景、主要功能，参考文献等。
+
+通量宝是水利部交通运输部国家能源局南京水利科学研究院生态水文与水资源保护研究团队研发的面向？？
+
+FluxWatch
+
+通量宝：南京水利科学研究院生态水文与水资源保护研究团队开发的流域水文水环境数据交互式分析平台软件。该平台可实现流域水文水质数据上传、清洗、统计与可视化分析，监测断面物质通量计算、不确定性分析、断面通量监测方案制定和优化，数据分析结果导出和研究报告编制。
+
+FluxWatch: An interactive data analysis platform software for watershed hydrology and water environment developped by the Ecohydrology and Water Resources Protection Research Team from Nanjing Hydraulic Research Institute (NHRI). This platform enables the uploading, cleaning, statistical analysis, and visualization of watershed hydrological and water quality data; material flux calculating at flux monitoring stations and the uncertainty analysis; flux monitoring schemes formulation and optimization; data analysis results downloading; compilation of research reports *etc*.
+
+### 2.2 数据上传与整理清洗
