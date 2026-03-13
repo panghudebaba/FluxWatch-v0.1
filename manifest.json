@@ -2454,13 +2454,22 @@
   },
   "files": {
     ".Rprofile": {
-      "checksum": "1b85ab61f18852b92ffb82edf207f7dd"
+      "checksum": "bbd510ae974de342b2418a8e78d2b7bd"
+    },
+    "AGENTS.html": {
+      "checksum": "8febc208b37f280062e81a37be4c3679"
+    },
+    "AGENTS.md": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
     },
     "app.R": {
-      "checksum": "f219723f37edc264b5d3fce81ba51bc3"
+      "checksum": "cdc7b42cd4de9072b0f496aa0d08031a"
     },
     "csv/Dailyflow_WE38_1983_2012.xlsx": {
       "checksum": "4243779bffe4b978306496e29449a73f"
+    },
+    "csv/EGRET_loadflex_通量计算标准数据模板.xlsx": {
+      "checksum": "cbfba0db971e5ddc521d8462f5b73f00"
     },
     "csv/Water_quality_WE_38_20150504.csv": {
       "checksum": "6114c0d29ebf4bffbc37993919ba0a52"
@@ -2474,14 +2483,62 @@
     "data/Water_quality_WE_38.rds": {
       "checksum": "16339b93a3c117291520b583ebe11fa4"
     },
-    "FluxWatch-hjli-20260308.Rmd": {
-      "checksum": "4fa5a71240a5d0f2cc693a23c6de9eb8"
-    },
-    "FluxWatch-hmlu-20260308.Rmd": {
-      "checksum": "4fa5a71240a5d0f2cc693a23c6de9eb8"
-    },
     "global.R": {
       "checksum": "773241328330ce6c612c450f94ef414e"
+    },
+    "R/app_server.R": {
+      "checksum": "5387fd7be2adbadbd66646065cc0dd72"
+    },
+    "R/app_ui.R": {
+      "checksum": "cbbd554dd6e3a27d0b8eee37a3796d46"
+    },
+    "R/fct_flux.R": {
+      "checksum": "787f61d696dad2e7a64d2441c773d1ff"
+    },
+    "R/fct_ingest.R": {
+      "checksum": "e0b92a8066e5cc4542d555b763a6d2ca"
+    },
+    "R/fct_viz.R": {
+      "checksum": "44f2dd98198eeb632d557431411a766f"
+    },
+    "R/mod_about.R": {
+      "checksum": "e4a38e498ab77ff7c7ae27f09089640b"
+    },
+    "R/mod_design.R": {
+      "checksum": "d6ede526f7f4e20b1a9e3accddd1bf22"
+    },
+    "R/mod_disclaimer.R": {
+      "checksum": "f3e95c267d841021a7fd5ecec73bb84f"
+    },
+    "R/mod_flux.R": {
+      "checksum": "937b6f636f5c4658a45af1efe2a4d7c3"
+    },
+    "R/mod_ingest.R": {
+      "checksum": "beeb0e4b7fbfea3c091f658f99ee3c8b"
+    },
+    "R/mod_report.R": {
+      "checksum": "164df20e303113d20898e784eecc58d0"
+    },
+    "R/mod_viz.R": {
+      "checksum": "37a8d7ae65225bbd5350c1098ef014d1"
+    },
+    "R/mod_welcome.R": {
+      "checksum": "d3d9cb94a1c89291a0a94a8cc62d012b"
+    },
+    "R/utils_data.R": {
+      "checksum": "81051bcc2cf1bedf378224b0a93e2877"
+    },
+    "R/utils_design.R": {
+      "checksum": "399592aba406af29645932950d4a8139"
+    },
+    "R/utils_flux.R": {
+      "checksum": "0115b160df579d0d59c054b887881fcd"
+    },
+    "R/utils_plot.R": {
+      "checksum": "57f731820e4184366321c81f769dc8fb"
+    },
+    "R/utils_report.R": {
+      "checksum": "c01cbbe44d224318b3b4db6cc9156276"
     },
     "renv.lock": {
       "checksum": "ba034372496b3241870fe34cf90b984d"
@@ -2496,7 +2553,7 @@
       "checksum": "d9d38bd01149f58b3c4da53dc8f8decb"
     },
     "通量宝开发笔记-hjli-20260304.Rmd": {
-      "checksum": "fe55e3525b6baee346a2145672a20ab4"
+      "checksum": "7cf8a3c8af4596a736424f7f0adf5d19"
     }
   },
   "users": null
