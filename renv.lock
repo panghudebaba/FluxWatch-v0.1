@@ -3379,7 +3379,7 @@
     "loadflex": {
       "Package": "loadflex",
       "Version": "1.9.2",
-      "Source": "./renv/cellar/loadflex_1.9.2.tar.gz",
+      "Source": "GitHub",
       "Type": "Package",
       "Title": "Models and Tools for Watershed Flux Estimates",
       "Date": "2023-07-02",
@@ -3418,6 +3418,12 @@
       "URL": "https://github.com/USGS-R/loadflex",
       "Collate": "'aaa_onLoad.R' 'aggregateSolute.R' 'convertToEGRET.R' 'covariance.R' 'deprecated.R' 'diagnostics.R' 'examples.R' 'getResiduals.R' 'interpolations.R' 'loadModelInterface.R' 'metadata.R' 'loadModel.R' 'loadComp.R' 'loadInterp.R' 'loadLm.R' 'loadReg.R' 'loadReg2.R' 'loadflex.R' 'match.arg.loadflex.R' 'plotEGRET.R' 'plots.R' 'predictors.R' 'summarizeData.R' 'text.R' 'uncertainty.R' 'unit.conversions.R'",
       "RoxygenNote": "6.1.1",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "loadflex",
+      "RemoteUsername": "USGS-R",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "bfcd8f767efc5298852be0883ec5b12fb3525972",
       "NeedsCompilation": "no"
     },
     "lubridate": {
@@ -4877,7 +4883,7 @@
     "rloadest": {
       "Package": "rloadest",
       "Version": "0.4.5",
-      "Source": "./renv/cellar/rloadest_0.4.5.tar.gz",
+      "Source": "GitHub",
       "Type": "Package",
       "Title": "River Load Estimation",
       "Date": "2017-07-26",
@@ -4907,6 +4913,12 @@
       "LazyLoad": "yes",
       "LazyData": "yes",
       "RoxygenNote": "6.0.1",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "rloadest",
+      "RemoteUsername": "USGS-R",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "8a8119f0b34264fab3b4d32af1f497b4f7d521d2",
       "NeedsCompilation": "yes",
       "Author": "Dave Lorenz [cre], Rob Runkel [aut], Laura De Cicco [aut], David Watkins [ctb], Joseph Stachelek [ctb]",
       "Maintainer": "Dave Lorenz <gs-w_r_admin@usgs.gov>"
@@ -6202,7 +6214,7 @@
     "unitted": {
       "Package": "unitted",
       "Version": "0.2.9",
-      "Source": "./renv/cellar/unitted_0.2.9.tar.gz",
+      "Source": "Cellar",
       "Title": "Track Units as you Manipulate Data",
       "Description": "Attaches units to data.frames, vectors, etc. and maintains the correct units when you add, multiply, exponentiate, etc. those values.",
       "URL": "https://github.com/appling/unitted",

@@ -2984,7 +2984,7 @@
       }
     },
     "loadflex": {
-      "Source": "./renv/cellar/loadflex_1.9.2.tar.gz",
+      "Source": "github",
       "Repository": null,
       "description": {
         "Package": "loadflex",
@@ -3006,9 +3006,19 @@
         "URL": "https://github.com/USGS-R/loadflex",
         "Collate": "'aaa_onLoad.R' 'aggregateSolute.R' 'convertToEGRET.R'\n'covariance.R' 'deprecated.R' 'diagnostics.R' 'examples.R'\n'getResiduals.R' 'interpolations.R' 'loadModelInterface.R'\n'metadata.R' 'loadModel.R' 'loadComp.R' 'loadInterp.R'\n'loadLm.R' 'loadReg.R' 'loadReg2.R' 'loadflex.R'\n'match.arg.loadflex.R' 'plotEGRET.R' 'plots.R' 'predictors.R'\n'summarizeData.R' 'text.R' 'uncertainty.R' 'unit.conversions.R'",
         "RoxygenNote": "6.1.1",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "loadflex",
+        "RemoteUsername": "USGS-R",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "bfcd8f767efc5298852be0883ec5b12fb3525972",
+        "GithubRepo": "loadflex",
+        "GithubUsername": "USGS-R",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "bfcd8f767efc5298852be0883ec5b12fb3525972",
         "NeedsCompilation": "no",
-        "Packaged": "2026-03-13 03:20:55 UTC; PC",
-        "Built": "R 4.4.1; ; 2026-03-13 06:58:01 UTC; windows"
+        "Packaged": "2026-03-13 08:55:48 UTC; PC",
+        "Built": "R 4.4.1; ; 2026-03-13 08:55:50 UTC; windows"
       }
     },
     "lubridate": {
@@ -4331,7 +4341,7 @@
       }
     },
     "rloadest": {
-      "Source": "./renv/cellar/rloadest_0.4.5.tar.gz",
+      "Source": "github",
       "Repository": null,
       "description": {
         "Package": "rloadest",
@@ -4349,11 +4359,21 @@
         "LazyLoad": "yes",
         "LazyData": "yes",
         "RoxygenNote": "6.0.1",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "rloadest",
+        "RemoteUsername": "USGS-R",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "8a8119f0b34264fab3b4d32af1f497b4f7d521d2",
+        "GithubRepo": "rloadest",
+        "GithubUsername": "USGS-R",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "8a8119f0b34264fab3b4d32af1f497b4f7d521d2",
         "NeedsCompilation": "yes",
-        "Packaged": "2026-03-13 03:21:52 UTC; PC",
+        "Packaged": "2026-03-13 08:55:22 UTC; PC",
         "Author": "Dave Lorenz [cre],\n  Rob Runkel [aut],\n  Laura De Cicco [aut],\n  David Watkins [ctb],\n  Joseph Stachelek [ctb]",
         "Maintainer": "Dave Lorenz <gs-w_r_admin@usgs.gov>",
-        "Built": "R 4.4.1; x86_64-w64-mingw32; 2026-03-13 06:58:15 UTC; windows",
+        "Built": "R 4.4.1; x86_64-w64-mingw32; 2026-03-13 08:55:23 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -5416,7 +5436,7 @@
       }
     },
     "unitted": {
-      "Source": "./renv/cellar/unitted_0.2.9.tar.gz",
+      "Source": "Cellar",
       "Repository": null,
       "description": {
         "Package": "unitted",
@@ -5435,7 +5455,7 @@
         "RoxygenNote": "6.0.1",
         "NeedsCompilation": "no",
         "Packaged": "2026-03-13 07:53:16 UTC; PC",
-        "Built": "R 4.4.1; ; 2026-03-13 07:54:07 UTC; windows"
+        "Built": "R 4.4.1; ; 2026-03-13 08:56:19 UTC; windows"
       }
     },
     "urca": {
@@ -5949,7 +5969,7 @@
   },
   "files": {
     ".Rprofile": {
-      "checksum": "5202c847e25e814842c73e638ef04461"
+      "checksum": "7646b51fb18781811ef0ee1afc369688"
     },
     "app.R": {
       "checksum": "cdc7b42cd4de9072b0f496aa0d08031a"
@@ -6030,7 +6050,7 @@
       "checksum": "c01cbbe44d224318b3b4db6cc9156276"
     },
     "renv.lock": {
-      "checksum": "6c76840c528c9b77799af8f7b744fb0b"
+      "checksum": "a2fb84301249a06281afd6936379c461"
     },
     "server.R": {
       "checksum": "138699d936fd18fba89cbe1d86e712e5"
