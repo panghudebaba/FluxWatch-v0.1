@@ -5435,7 +5435,7 @@
         "RoxygenNote": "6.0.1",
         "NeedsCompilation": "no",
         "Packaged": "2026-02-04 05:23:27 UTC; PC",
-        "Built": "R 4.4.1; ; 2026-03-13 06:59:54 UTC; windows"
+        "Built": "R 4.4.1; ; 2026-03-13 07:27:42 UTC; windows"
       }
     },
     "urca": {
@@ -5949,13 +5949,7 @@
   },
   "files": {
     ".Rprofile": {
-      "checksum": "ddae0772aa042f6ae2662d3f4baaaf5f"
-    },
-    "AGENTS.html": {
-      "checksum": "8febc208b37f280062e81a37be4c3679"
-    },
-    "AGENTS.md": {
-      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+      "checksum": "80c72cb155a1df689e7af8ad3dfaa654"
     },
     "app.R": {
       "checksum": "cdc7b42cd4de9072b0f496aa0d08031a"
