@@ -3379,7 +3379,7 @@
     "loadflex": {
       "Package": "loadflex",
       "Version": "1.9.2",
-      "Source": "Cellar",
+      "Source": "./renv/cellar/loadflex_1.9.2.tar.gz",
       "Type": "Package",
       "Title": "Models and Tools for Watershed Flux Estimates",
       "Date": "2023-07-02",
@@ -4877,7 +4877,7 @@
     "rloadest": {
       "Package": "rloadest",
       "Version": "0.4.5",
-      "Source": "Cellar",
+      "Source": "./renv/cellar/rloadest_0.4.5.tar.gz",
       "Type": "Package",
       "Title": "River Load Estimation",
       "Date": "2017-07-26",
@@ -6202,7 +6202,7 @@
     "unitted": {
       "Package": "unitted",
       "Version": "0.2.9",
-      "Source": "Cellar",
+      "Source": "./renv/cellar/unitted_0.2.9.tar.gz",
       "Title": "Track Units as you Manipulate Data",
       "Description": "Attaches units to data.frames, vectors, etc. and maintains the correct units when you add, multiply, exponentiate, etc. those values.",
       "URL": "https://github.com/appling/unitted",
