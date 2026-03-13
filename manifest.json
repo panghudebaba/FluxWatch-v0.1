@@ -5434,8 +5434,8 @@
         "Collate": "'01-parse.R' '02-unitbundle.R' '03-unitted.R' 'access.R'\n'arithmetic.R' 'assign.R' 'combine.R' 'convert.R' 'display.R'\n'dplyr.R' 'dplyr_join.R' 'inspect.R' 'package-unitted.R'\n'tibble.R' 'write.R' 'zzz.R'",
         "RoxygenNote": "6.0.1",
         "NeedsCompilation": "no",
-        "Packaged": "2026-02-04 05:23:27 UTC; PC",
-        "Built": "R 4.4.1; ; 2026-03-13 07:27:42 UTC; windows"
+        "Packaged": "2026-03-13 07:53:16 UTC; PC",
+        "Built": "R 4.4.1; ; 2026-03-13 07:54:07 UTC; windows"
       }
     },
     "urca": {
@@ -5949,7 +5949,7 @@
   },
   "files": {
     ".Rprofile": {
-      "checksum": "80c72cb155a1df689e7af8ad3dfaa654"
+      "checksum": "4cf9d8747b44f0faa9b661e642c82c00"
     },
     "app.R": {
       "checksum": "cdc7b42cd4de9072b0f496aa0d08031a"
