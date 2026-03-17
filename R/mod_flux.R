@@ -1,28 +1,28 @@
+# =====================================================================
+# mod_flux.R
+# 通量计算模块 —— 主模块 UI + Server（集成所有方法）
+# 回归法专属逻辑由 mod_flux_regression.R 提供
+# 复合法专属逻辑由 mod_flux_composite.R 提供
+# =====================================================================
+
 if (!exists("%||%", mode = "function")) {
   `%||%` <- function(x, y) if (is.null(x) || length(x) == 0) y else x
 }
 
 # ----------------------------- UI -----------------------------
+
 mod_flux_method_page_ui <- function(ns, key) {
+  # 回归法 / 复合法使用专属参数块，其他方法使用通用数据源选择
   left_extra <- if (identical(key, "regression")) {
-    shiny::tagList(
-      shiny::helpText("回归方法固定调用第一步处理后的 QF/WQ 数据"),
-      shiny::selectInput(ns(paste0("qf_sheet_", key)), "QF数据表", choices = NULL),
-      shiny::selectInput(ns(paste0("wq_sheet_", key)), "WQ数据表", choices = NULL),
-      shiny::selectInput(ns(paste0("constituent_", key)), "水质指标(j)", choices = NULL),
-      shiny::selectInput(
-        ns(paste0("reg_model_", key)),
-        "回归模型",
-        choices = c("季节回归" = "loadLm_season", "线性回归" = "loadLm_simple"),
-        selected = "loadLm_season"
-      )
-    )
+    fw_regression_left_extra_ui(ns, key)
+  } else if (identical(key, "composite")) {
+    fw_composite_left_extra_ui(ns, key)
   } else {
     shiny::tagList(
       shiny::selectInput(
         ns(paste0("datasrc_", key)),
-        "数据选择",
-        choices = c("自动（第一步处理数据）" = "auto")
+        "\u6570\u636e\u9009\u62e9",
+        choices = c("\u81ea\u52a8\uff08\u7b2c\u4e00\u6b65\u5904\u7406\u6570\u636e\uff09" = "auto")
       )
     )
   }
@@ -34,101 +34,59 @@ mod_flux_method_page_ui <- function(ns, key) {
       shiny::column(
         width = 4,
         shinydashboard::box(
-          width = 12,
-          status = "warning",
-          solidHeader = TRUE,
-          title = shiny::tagList(shiny::icon("book"), " 方法原理（点击右上角展开/收起）"),
-          collapsible = TRUE,
-          collapsed = TRUE,
+          width = 12, status = "warning", solidHeader = TRUE,
+          title = shiny::tagList(shiny::icon("book"), " \u65b9\u6cd5\u539f\u7406\uff08\u70b9\u51fb\u53f3\u4e0a\u89d2\u5c55\u5f00/\u6536\u8d77\uff09"),
+          collapsible = TRUE, collapsed = TRUE,
           shiny::uiOutput(ns(paste0("principle_", key)))
         ),
         shinydashboard::box(
-          width = 12,
-          status = "primary",
-          solidHeader = TRUE,
-          title = shiny::tagList(shiny::icon("sliders-h"), " 参数设置"),
+          width = 12, status = "primary", solidHeader = TRUE,
+          title = shiny::tagList(shiny::icon("sliders-h"), " \u53c2\u6570\u8bbe\u7f6e"),
           left_extra,
-          shiny::dateRangeInput(ns(paste0("daterange_", key)), "数据时间选择", start = NULL, end = NULL),
-          shiny::numericInput(ns(paste0("param1_", key)), "参数1", value = 1, step = 0.1),
-          shiny::numericInput(ns(paste0("param2_", key)), "参数2", value = 1, step = 0.1),
+          shiny::dateRangeInput(ns(paste0("daterange_", key)), "\u6570\u636e\u65f6\u95f4\u9009\u62e9", start = NULL, end = NULL),
+          shiny::numericInput(ns(paste0("param1_", key)), "\u53c2\u65701", value = 1, step = 0.1),
+          shiny::numericInput(ns(paste0("param2_", key)), "\u53c2\u65702", value = 1, step = 0.1),
           shiny::actionButton(
-            ns(paste0("run_", key)),
-            "开始计算",
-            icon = shiny::icon("play"),
-            class = "btn-primary btn-block"
+            ns(paste0("run_", key)), "\u5f00\u59cb\u8ba1\u7b97",
+            icon = shiny::icon("play"), class = "btn-primary btn-block"
           )
         )
       ),
-
       shiny::column(
         width = 8,
         shinydashboard::box(
-          width = 12,
-          status = "info",
-          solidHeader = TRUE,
-          title = shiny::tagList(shiny::icon("calculator"), " 结算结果"),
+          width = 12, status = "info", solidHeader = TRUE,
+          title = shiny::tagList(shiny::icon("calculator"), " \u7ed3\u7b97\u7ed3\u679c"),
           shiny::verbatimTextOutput(ns(paste0("txt_settle_", key))),
-
           shiny::tabsetPanel(
             type = "tabs",
             shiny::tabPanel(
-              "汇总表（日尺度）",
-              shiny::div(
-                style = "margin: 8px 0;",
-                shiny::downloadButton(
-                  ns(paste0("download_summary_", key)),
-                  "下载汇总表",
-                  class = "btn-default btn-sm"
-                )
-              ),
+              "\u6c47\u603b\u8868\uff08\u65e5\u5c3a\u5ea6\uff09",
+              shiny::div(style = "margin: 8px 0;",
+                         shiny::downloadButton(ns(paste0("download_summary_", key)), "\u4e0b\u8f7d\u6c47\u603b\u8868", class = "btn-default btn-sm")),
               DT::DTOutput(ns(paste0("tbl_summary_", key)))
             ),
             shiny::tabPanel(
-              "通量时序",
-              shiny::div(
-                style = "margin: 8px 0;",
-                shiny::downloadButton(
-                  ns(paste0("download_ts_", key)),
-                  "下载时序数据",
-                  class = "btn-default btn-sm"
-                )
-              ),
+              "\u901a\u91cf\u65f6\u5e8f",
+              shiny::div(style = "margin: 8px 0;",
+                         shiny::downloadButton(ns(paste0("download_ts_", key)), "\u4e0b\u8f7d\u65f6\u5e8f\u6570\u636e", class = "btn-default btn-sm")),
               plotly::plotlyOutput(ns(paste0("plot_ts_", key)), height = "260px")
             ),
             shiny::tabPanel(
-              "诊断图",
-              shiny::div(
-                style = "margin: 8px 0;",
-                shiny::downloadButton(
-                  ns(paste0("download_diag_", key)),
-                  "下载诊断图(PNG)",
-                  class = "btn-default btn-sm"
-                )
-              ),
-              shiny::plotOutput(ns(paste0("plot_diag_", key)), height = "260px")
+              "\u8bca\u65ad\u56fe",
+              shiny::div(style = "margin: 8px 0;",
+                         shiny::downloadButton(ns(paste0("download_diag_", key)), "\u4e0b\u8f7d\u8bca\u65ad\u56fe(PNG)", class = "btn-default btn-sm")),
+              shiny::plotOutput(ns(paste0("plot_diag_", key)), height = "500px")
             )
           ),
-
           shiny::tags$hr(),
-          shiny::h5("历史方案记录"),
+          shiny::h5("\u5386\u53f2\u65b9\u6848\u8bb0\u5f55"),
           DT::DTOutput(ns(paste0("tbl_history_", key))),
           shiny::fluidRow(
-            shiny::column(
-              6,
-              shiny::downloadButton(
-                ns(paste0("download_current_", key)),
-                "下载当前结果",
-                class = "btn-success btn-block"
-              )
-            ),
-            shiny::column(
-              6,
-              shiny::downloadButton(
-                ns(paste0("download_history_", key)),
-                "下载历史汇总",
-                class = "btn-default btn-block"
-              )
-            )
+            shiny::column(6,
+                          shiny::downloadButton(ns(paste0("download_current_", key)), "\u4e0b\u8f7d\u5f53\u524d\u7ed3\u679c", class = "btn-success btn-block")),
+            shiny::column(6,
+                          shiny::downloadButton(ns(paste0("download_history_", key)), "\u4e0b\u8f7d\u5386\u53f2\u6c47\u603b", class = "btn-default btn-block"))
           )
         )
       )
@@ -136,33 +94,24 @@ mod_flux_method_page_ui <- function(ns, key) {
   )
 }
 
-# 新增：方法对比页
 mod_flux_compare_tab_ui <- function(ns) {
   shiny::tabPanel(
-    title = "方法对比",
-    value = "compare",
+    title = "\u65b9\u6cd5\u5bf9\u6bd4", value = "compare",
     shiny::fluidRow(
       shiny::column(
         width = 3,
         shiny::wellPanel(
           shiny::checkboxGroupInput(
-            ns("compare_methods"),
-            "选择要对比的方法",
-            choices = c(
-              "加权平均法" = "weighted",
-              "插值法" = "interp",
-              "比率法" = "ratio",
-              "回归法" = "regression",
-              "复合方法" = "composite"
-            ),
+            ns("compare_methods"), "\u9009\u62e9\u8981\u5bf9\u6bd4\u7684\u65b9\u6cd5",
+            choices = c("\u52a0\u6743\u5e73\u5747\u6cd5" = "weighted",
+                        "\u63d2\u503c\u6cd5" = "interp",
+                        "\u6bd4\u7387\u6cd5" = "ratio",
+                        "\u56de\u5f52\u6cd5" = "regression",
+                        "\u590d\u5408\u65b9\u6cd5" = "composite"),
             selected = NULL
           ),
-          shiny::actionButton(
-            ns("compare_run"),
-            "更新对比",
-            class = "btn-primary btn-block"
-          ),
-          shiny::helpText("注：仅显示已成功计算的方法。")
+          shiny::actionButton(ns("compare_run"), "\u66f4\u65b0\u5bf9\u6bd4", class = "btn-primary btn-block"),
+          shiny::helpText("\u6ce8\uff1a\u4ec5\u663e\u793a\u5df2\u6210\u529f\u8ba1\u7b97\u7684\u65b9\u6cd5\u3002")
         )
       ),
       shiny::column(
@@ -177,12 +126,10 @@ mod_flux_compare_tab_ui <- function(ns) {
 
 mod_flux_ui <- function(id, tabName = "flux") {
   ns <- shiny::NS(id)
-
   shinydashboard::tabItem(
     tabName = tabName,
     shiny::tabsetPanel(
-      id = ns("method_top"),
-      type = "tabs",
+      id = ns("method_top"), type = "tabs",
       mod_flux_method_page_ui(ns, "weighted"),
       mod_flux_method_page_ui(ns, "interp"),
       mod_flux_method_page_ui(ns, "ratio"),
@@ -194,13 +141,16 @@ mod_flux_ui <- function(id, tabName = "flux") {
 }
 
 # ----------------------------- Server -----------------------------
+
 mod_flux_server <- function(id, rv) {
   shiny::moduleServer(id, function(input, output, session) {
 
     method_keys <- c("weighted", "interp", "ratio", "regression", "composite")
-    non_reg_keys <- setdiff(method_keys, "regression")
+    # 非回归、非复合方法共享 datasrc 同步逻辑
+    simple_keys <- c("weighted", "interp", "ratio")
     conv_factor_fixed <- 86.4
 
+    # ======== 初始化 flux_current / flux_history ========
     observeEvent(TRUE, {
       if (is.null(rv$flux_current) || !is.list(rv$flux_current)) {
         rv$flux_current <- setNames(vector("list", length(method_keys)), method_keys)
@@ -209,22 +159,19 @@ mod_flux_server <- function(id, rv) {
           if (!(k %in% names(rv$flux_current))) rv$flux_current[[k]] <- NULL
         }
       }
-
       if (is.null(rv$flux_history) || !is.list(rv$flux_history)) {
         rv$flux_history <- fw_init_flux_history(method_keys)
       } else {
         for (k in method_keys) {
           if (is.null(rv$flux_history[[k]])) {
-            rv$flux_history[[k]] <- list(
-              meta = data.frame(stringsAsFactors = FALSE),
-              items = list()
-            )
+            rv$flux_history[[k]] <- list(meta = data.frame(stringsAsFactors = FALSE), items = list())
           }
         }
       }
     }, once = TRUE)
 
-    # -------- 非回归方法的数据源选择 --------
+    # ======== 简单方法（weighted/interp/ratio）的数据源选择 ========
+
     is_flux_compatible <- function(df) {
       if (is.null(df) || !is.data.frame(df) || nrow(df) == 0) return(FALSE)
       cc <- tryCatch(fw_find_flux_cols(df), error = function(e) NULL)
@@ -240,11 +187,11 @@ mod_flux_server <- function(id, rv) {
     }
 
     data_choices <- shiny::reactive({
-      ch <- c("自动（第一步处理数据）" = "auto")
+      ch <- c("\u81ea\u52a8\uff08\u7b2c\u4e00\u6b65\u5904\u7406\u6570\u636e\uff09" = "auto")
       add_choice <- function(x, label, value) c(x, stats::setNames(value, label))
 
       if (!is.null(rv$clean_df) && is_flux_compatible(rv$clean_df)) {
-        ch <- add_choice(ch, "clean_df（第一步清洗结果）", "clean_df")
+        ch <- add_choice(ch, "clean_df\uff08\u7b2c\u4e00\u6b65\u6e05\u6d17\u7ed3\u679c\uff09", "clean_df")
       }
 
       cl <- rv$clean_list
@@ -252,16 +199,12 @@ mod_flux_server <- function(id, rv) {
         tgs <- get_wq_targets(cl)
         if (length(tgs) > 0) {
           for (tg in tgs) {
-            tmp <- tryCatch(
-              fw_build_flux_df_from_clean_list(cl, target = tg),
-              error = function(e) NULL
-            )
+            tmp <- tryCatch(fw_build_flux_df_from_clean_list(cl, target = tg), error = function(e) NULL)
             if (!is.null(tmp) && is_flux_compatible(tmp)) {
-              ch <- add_choice(ch, paste0("Flow + WaterQuality（", tg, "）"), paste0("merge::", tg))
+              ch <- add_choice(ch, paste0("Flow + WaterQuality\uff08", tg, "\uff09"), paste0("merge::", tg))
             }
           }
         }
-
         nm <- names(cl)
         if (length(nm) > 0) {
           for (k in nm) {
@@ -272,14 +215,14 @@ mod_flux_server <- function(id, rv) {
           }
         }
       }
-
       ch <- ch[!duplicated(unname(ch))]
       ch
     })
 
+    # datasrc 同步：仅简单方法（weighted/interp/ratio）
     observe({
       ch <- data_choices()
-      for (k in non_reg_keys) {
+      for (k in simple_keys) {
         id0 <- paste0("datasrc_", k)
         cur <- isolate(input[[id0]])
         if (is.null(cur) || !(cur %in% unname(ch))) cur <- unname(ch)[1]
@@ -289,176 +232,92 @@ mod_flux_server <- function(id, rv) {
 
     get_source_df <- function(src) {
       cl <- rv$clean_list
-
       if (is.null(src) || identical(src, "auto")) {
-        if (!is.null(rv$clean_df) && is_flux_compatible(rv$clean_df)) {
-          return(rv$clean_df)
-        }
-
+        if (!is.null(rv$clean_df) && is_flux_compatible(rv$clean_df)) return(rv$clean_df)
         if (!is.null(cl) && is.list(cl)) {
           tgs <- get_wq_targets(cl)
           if (length(tgs) > 0) {
             for (tg in tgs) {
-              tmp <- tryCatch(
-                fw_build_flux_df_from_clean_list(cl, target = tg),
-                error = function(e) NULL
-              )
+              tmp <- tryCatch(fw_build_flux_df_from_clean_list(cl, target = tg), error = function(e) NULL)
               if (!is.null(tmp) && is_flux_compatible(tmp)) return(tmp)
             }
           }
-
           nm <- names(cl)
           if (length(nm) > 0) {
-            for (k in nm) {
-              obj <- cl[[k]]
-              if (is_flux_compatible(obj)) return(obj)
-            }
+            for (k in nm) { obj <- cl[[k]]; if (is_flux_compatible(obj)) return(obj) }
           }
         }
         return(NULL)
       }
-
-      if (identical(src, "clean_df")) {
-        return(if (is_flux_compatible(rv$clean_df)) rv$clean_df else NULL)
-      }
-
+      if (identical(src, "clean_df")) return(if (is_flux_compatible(rv$clean_df)) rv$clean_df else NULL)
       if (grepl("^merge::", src)) {
         tg <- sub("^merge::", "", src)
-        tmp <- tryCatch(
-          fw_build_flux_df_from_clean_list(cl, target = tg),
-          error = function(e) NULL
-        )
+        tmp <- tryCatch(fw_build_flux_df_from_clean_list(cl, target = tg), error = function(e) NULL)
         return(if (!is.null(tmp) && is_flux_compatible(tmp)) tmp else NULL)
       }
-
       if (grepl("^list::", src)) {
         nm <- sub("^list::", "", src)
         obj <- if (!is.null(cl) && nm %in% names(cl)) cl[[nm]] else NULL
         return(if (!is.null(obj) && is_flux_compatible(obj)) obj else NULL)
       }
-
       NULL
     }
 
-    # -------- 回归方法：第一步 QF/WQ --------
-    step1_qf_wq <- shiny::reactive({
-      fw_get_step1_qf_wq(rv)
-    })
+    # ======== 回归法：初始化专属 observers（委托 mod_flux_regression.R）========
 
-    observe({
-      s1 <- step1_qf_wq()
-      if (is.null(s1)) {
-        shiny::updateSelectInput(session, "qf_sheet_regression", choices = character(0))
-        shiny::updateSelectInput(session, "wq_sheet_regression", choices = character(0))
-        return()
-      }
+    step1_qf_wq <- fw_regression_step1_reactive(rv)
+    fw_regression_init_observers(input, session, step1_qf_wq)
 
-      qf_list <- fw_as_named_table_list(s1$QF, "QF")
-      wq_list <- fw_as_named_table_list(s1$WQ, "WQ")
-      if (length(qf_list) == 0 || length(wq_list) == 0) {
-        shiny::updateSelectInput(session, "qf_sheet_regression", choices = character(0))
-        shiny::updateSelectInput(session, "wq_sheet_regression", choices = character(0))
-        return()
-      }
+    # ======== 复合法：初始化专属 observers（委托 mod_flux_composite.R）========
+    # 复用与回归法相同的 step1_qf_wq reactive
+    fw_composite_init_observers(input, session, step1_qf_wq, key = "composite")
 
-      qf_nm <- names(qf_list)
-      wq_nm <- names(wq_list)
+    # ======== 每个方法页的通用 Server 逻辑 ========
 
-      cur_qf <- isolate(input$qf_sheet_regression)
-      cur_wq <- isolate(input$wq_sheet_regression)
-      if (is.null(cur_qf) || !(cur_qf %in% qf_nm)) cur_qf <- qf_nm[1]
-      if (is.null(cur_wq) || !(cur_wq %in% wq_nm)) cur_wq <- wq_nm[1]
-
-      shiny::updateSelectInput(session, "qf_sheet_regression", choices = qf_nm, selected = cur_qf)
-      shiny::updateSelectInput(session, "wq_sheet_regression", choices = wq_nm, selected = cur_wq)
-    })
-
-    observe({
-      s1 <- step1_qf_wq()
-      if (is.null(s1)) {
-        shiny::updateSelectInput(session, "constituent_regression", choices = character(0))
-        return()
-      }
-
-      wq_list <- fw_as_named_table_list(s1$WQ, "WQ")
-      if (length(wq_list) == 0) {
-        shiny::updateSelectInput(session, "constituent_regression", choices = character(0))
-        return()
-      }
-
-      ws <- input$wq_sheet_regression
-      if (is.null(ws) || !(ws %in% names(wq_list))) ws <- names(wq_list)[1]
-
-      cands <- fw_get_wq_constituents(wq_list[[ws]])
-      if (length(cands) == 0) cands <- names(wq_list[[ws]])
-
-      cur <- isolate(input$constituent_regression)
-      if (is.null(cur) || !(cur %in% cands)) cur <- cands[1]
-
-      shiny::updateSelectInput(session, "constituent_regression", choices = cands, selected = cur)
-    })
-
-    # -------- 每个方法页 --------
     for (k in method_keys) local({
       key <- k
 
+      # ---- 方法原理（复合法委托专属函数，其余用通用文本 + withMathJax）----
       output[[paste0("principle_", key)]] <- shiny::renderUI({
-        shiny::tags$div(
-          style = "font-size:14px; line-height:1.8;",
-          fw_flux_method_principle(key)
+        if (identical(key, "composite")) {
+          return(fw_composite_render_principle(input, key))
+        }
+        shiny::withMathJax(
+          shiny::tags$div(
+            style = "font-size:14px; line-height:1.8;",
+            fw_flux_method_principle(key)
+          )
         )
       })
 
+      # ---- 日数据获取 ----
       daily_all <- shiny::reactive({
+        # 回归法：委托专属函数
         if (identical(key, "regression")) {
-          s1 <- step1_qf_wq()
-          if (is.null(s1)) return(NULL)
-
-          prep <- tryCatch(
-            fw_prepare_regression_input(
-              step1_data = s1,
-              qf_sheet = input[[paste0("qf_sheet_", key)]],
-              wq_sheet = input[[paste0("wq_sheet_", key)]],
-              constituent = input[[paste0("constituent_", key)]],
-              date_range = NULL
-            ),
-            error = function(e) NULL
-          )
-          if (is.null(prep)) return(NULL)
-
-          out <- data.frame(
-            station = prep$station,
-            WYBM = prep$wybm %||% NA_character_,
-            date = prep$dat$TM,
-            Q = prep$dat$Q,
-            C_obs = prep$dat$conc,
-            stringsAsFactors = FALSE
-          )
-          return(out)
+          return(fw_regression_get_daily_all(input, step1_qf_wq))
         }
-
+        # 复合法：委托专属函数，复用已有的 step1_qf_wq
+        if (identical(key, "composite")) {
+          return(fw_composite_get_daily_all(input, key = key,
+                                            step1_qf_wq = step1_qf_wq))
+        }
+        # 其他简单方法（weighted / interp / ratio）
         src <- input[[paste0("datasrc_", key)]]
         raw <- get_source_df(src)
         if (is.null(raw)) return(NULL)
-
-        tryCatch(
-          fw_prepare_flux_data(raw),
-          error = function(e) NULL
-        )
+        tryCatch(fw_prepare_flux_data(raw), error = function(e) NULL)
       })
 
       daily_station <- shiny::reactive({
         d <- daily_all()
         if (is.null(d) || nrow(d) == 0) return(NULL)
-
         if (!("station" %in% names(d))) return(d)
-
         st <- unique(stats::na.omit(as.character(d$station)))
         if (length(st) == 0) return(d)
-
         d[d$station == st[1], , drop = FALSE]
       })
 
+      # ---- 日期范围同步 ----
       observeEvent(daily_station(), {
         d <- daily_station()
         if (is.null(d) || nrow(d) == 0) return()
@@ -467,84 +326,64 @@ mod_flux_server <- function(id, rv) {
         rg <- range(fw_as_date(d$date), na.rm = TRUE)
         cur <- isolate(input[[paste0("daterange_", key)]])
 
-        st <- rg[1]
-        ed <- rg[2]
-
+        st <- rg[1]; ed <- rg[2]
         if (!is.null(cur) && length(cur) == 2 && all(!is.na(cur))) {
           st <- max(as.Date(cur[1]), rg[1])
           ed <- min(as.Date(cur[2]), rg[2])
-          if (st > ed) {
-            st <- rg[1]
-            ed <- rg[2]
-          }
+          if (st > ed) { st <- rg[1]; ed <- rg[2] }
         }
 
-        shiny::updateDateRangeInput(
-          session,
-          inputId = paste0("daterange_", key),
-          start = st,
-          end = ed,
-          min = rg[1],
-          max = rg[2]
-        )
+        shiny::updateDateRangeInput(session, paste0("daterange_", key),
+                                    start = st, end = ed, min = rg[1], max = rg[2])
       }, ignoreInit = FALSE)
 
+      # ---- 开始计算 ----
       observeEvent(input[[paste0("run_", key)]], {
         res <- NULL
 
         if (identical(key, "regression")) {
-          s1 <- step1_qf_wq()
-          if (is.null(s1)) {
-            shiny::showNotification("未找到第一步 QF/WQ 数据。", type = "error")
-            return()
+          # 委托回归法专属函数
+          res <- fw_regression_run_calc(input, step1_qf_wq, key)
+
+        } else if (identical(key, "composite")) {
+          # 委托复合法专属函数
+          res <- fw_composite_run_calc(input, daily_station, key, conv_factor_fixed)
+
+          # 附加数据源标签（复合法从 QF/WQ/指标 组合生成）
+          qf_sel <- input[[paste0("qf_sheet_", key)]] %||% ""
+          wq_sel <- input[[paste0("wq_sheet_", key)]] %||% ""
+          con    <- input[[paste0("constituent_", key)]] %||% ""
+          src_lab <- paste0("QF:", qf_sel, " / WQ:", wq_sel, " / ", con)
+          if (!is.null(res)) {
+            res$params$data_source       <- paste0(qf_sel, "::", wq_sel, "::", con)
+            res$params$data_source_label <- src_lab
           }
 
-          res <- tryCatch(
-            fw_run_flux_with_config(
-              method = "regression",
-              date_range = input[[paste0("daterange_", key)]],
-              param1 = input[[paste0("param1_", key)]],
-              param2 = input[[paste0("param2_", key)]],
-              step1_data = s1,
-              regression_cfg = list(
-                qf_sheet = input[[paste0("qf_sheet_", key)]],
-                wq_sheet = input[[paste0("wq_sheet_", key)]],
-                constituent = input[[paste0("constituent_", key)]],
-                model_choice = input[[paste0("reg_model_", key)]]
-              )
-            ),
-            error = function(e) {
-              shiny::showNotification(e$message, type = "error")
-              NULL
-            }
-          )
         } else {
+          # 其他简单方法（weighted / interp / ratio）
           d <- daily_station()
           if (is.null(d) || nrow(d) == 0) {
-            shiny::showNotification("当前“数据选择”不可用于通量计算，请更换数据源。", type = "error")
+            shiny::showNotification("\u5f53\u524d\u6570\u636e\u9009\u62e9\u4e0d\u53ef\u7528\u4e8e\u901a\u91cf\u8ba1\u7b97\uff0c\u8bf7\u66f4\u6362\u6570\u636e\u6e90\u3002", type = "error")
             return()
           }
 
           res <- tryCatch(
             fw_run_flux_with_config(
-              dat_daily = d,
-              method = key,
-              date_range = input[[paste0("daterange_", key)]],
-              param1 = input[[paste0("param1_", key)]],
-              param2 = input[[paste0("param2_", key)]],
+              dat_daily   = d,
+              method      = key,
+              date_range  = input[[paste0("daterange_", key)]],
+              param1      = input[[paste0("param1_", key)]],
+              param2      = input[[paste0("param2_", key)]],
               conv_factor = conv_factor_fixed
             ),
-            error = function(e) {
-              shiny::showNotification(e$message, type = "error")
-              NULL
-            }
+            error = function(e) { shiny::showNotification(e$message, type = "error"); NULL }
           )
 
+          # 附加数据源标签
           src_val <- input[[paste0("datasrc_", key)]]
           ch <- data_choices()
           src_lab <- names(ch)[match(src_val, unname(ch))]
           if (length(src_lab) == 0 || is.na(src_lab)) src_lab <- src_val %||% "auto"
-
           if (!is.null(res)) {
             res$params$data_source <- src_val
             res$params$data_source_label <- src_lab
@@ -555,95 +394,74 @@ mod_flux_server <- function(id, rv) {
 
         station_used <- if ("station" %in% names(res$daily) && nrow(res$daily) > 0) {
           as.character(unique(res$daily$station)[1])
-        } else {
-          "ALL"
-        }
+        } else "ALL"
 
         rv$flux_current[[key]] <- res
         rv$flux_history <- fw_append_flux_history(
-          history = rv$flux_history,
-          method = key,
-          res = res,
-          station = station_used
-        )
-
+          history = rv$flux_history, method = key, res = res, station = station_used)
         rv$flux_df <- res$daily
         rv$flux_results <- rv$flux_current
 
         shiny::showNotification(
-          paste0(fw_flux_method_label(key), " 计算完成，已保存历史方案。"),
-          type = "message"
-        )
+          paste0(fw_flux_method_label(key), " \u8ba1\u7b97\u5b8c\u6210\uff0c\u5df2\u4fdd\u5b58\u5386\u53f2\u65b9\u6848\u3002"), type = "message")
       }, ignoreInit = TRUE)
 
+      # ---- 响应式：当前结果 / 历史 ----
       cur_res <- shiny::reactive({
         x <- rv$flux_current
-        if (is.null(x) || is.null(x[[key]])) return(NULL)
-        x[[key]]
+        if (is.null(x) || is.null(x[[key]])) NULL else x[[key]]
       })
 
       hist_res <- shiny::reactive({
         h <- rv$flux_history
-        if (is.null(h) || is.null(h[[key]])) return(NULL)
-        h[[key]]
+        if (is.null(h) || is.null(h[[key]])) NULL else h[[key]]
       })
 
+      # ---- 结算文本 ----
       output[[paste0("txt_settle_", key)]] <- shiny::renderText({
         res <- cur_res()
-        if (is.null(res)) {
-          return("尚未计算。请在左侧设置后点击“开始计算”。")
-        }
+        if (is.null(res)) return("\u5c1a\u672a\u8ba1\u7b97\u3002\u8bf7\u5728\u5de6\u4fa7\u8bbe\u7f6e\u540e\u70b9\u51fb\u5f00\u59cb\u8ba1\u7b97\u3002")
 
         d <- res$daily
         total_flux <- round(sum(d$flux, na.rm = TRUE), 4)
-        mean_flux <- round(mean(d$flux, na.rm = TRUE), 4)
+        mean_flux  <- round(mean(d$flux, na.rm = TRUE), 4)
 
         st_vals <- if ("station" %in% names(d)) unique(stats::na.omit(as.character(d$station))) else character(0)
-        st_txt <- if (length(st_vals) > 0) paste(st_vals, collapse = ", ") else "ALL"
+        st_txt  <- if (length(st_vals) > 0) paste(st_vals, collapse = ", ") else "ALL"
 
         wy_vals <- if ("WYBM" %in% names(d)) unique(stats::na.omit(as.character(d$WYBM))) else character(0)
         wy_line <- if (length(wy_vals) > 0) paste0("\nWYBM: ", paste(wy_vals, collapse = ", ")) else ""
 
-        d0 <- fw_as_date(d$date)
-        d0 <- d0[!is.na(d0)]
-        dline <- if (length(d0) > 0) {
-          paste0(as.character(min(d0)), " ~ ", as.character(max(d0)))
-        } else {
-          "NA ~ NA"
-        }
+        d0 <- fw_as_date(d$date); d0 <- d0[!is.na(d0)]
+        dline <- if (length(d0) > 0) paste0(as.character(min(d0)), " ~ ", as.character(max(d0))) else "NA ~ NA"
 
-        extra <- ""
-        if (identical(key, "regression")) {
-          extra <- paste0(
-            "\nQF表: ", res$params$qf_sheet %||% "",
-            "\nWQ表: ", res$params$wq_sheet %||% "",
-            "\n指标: ", res$params$constituent %||% "",
-            "\n模型: ", res$params$model_choice %||% ""
-          )
-        }
+        # 回归法 / 复合法额外信息委托各自专属函数
+        extra <- if (identical(key, "regression")) {
+          fw_regression_settle_extra(res)
+        } else if (identical(key, "composite")) {
+          fw_composite_settle_extra(res)
+        } else ""
 
         paste0(
-          "方法: ", res$method_label,
-          "\n数据源: ", res$params$data_source_label %||% "auto",
-          "\n站点: ", st_txt,
-          wy_line,
-          "\n时间: ", dline,
-          "\n参数1: ", res$params$param1 %||% 1, "；参数2: ", res$params$param2 %||% 1,
-          if (!identical(key, "regression")) paste0("\n换算系数: ", conv_factor_fixed, "（固定）") else "",
+          "\u65b9\u6cd5: ", res$method_label,
+          "\n\u6570\u636e\u6e90: ", res$params$data_source_label %||% "auto",
+          "\n\u7ad9\u70b9: ", st_txt, wy_line,
+          "\n\u65f6\u95f4: ", dline,
+          "\n\u53c2\u65701: ", res$params$param1 %||% 1,
+          "\uff1b\u53c2\u65702: ", res$params$param2 %||% 1,
+          if (key %in% simple_keys)
+            paste0("\n\u6362\u7b97\u7cfb\u6570: ", conv_factor_fixed, "\uff08\u56fa\u5b9a\uff09") else "",
           extra,
-          "\n总通量(kg): ", total_flux,
-          "\n平均日通量(kg/d): ", mean_flux
+          "\n\u603b\u901a\u91cf(kg): ", total_flux,
+          "\n\u5e73\u5747\u65e5\u901a\u91cf(kg/d): ", mean_flux
         )
       })
 
+      # ---- 汇总表 ----
       output[[paste0("tbl_summary_", key)]] <- DT::renderDataTable({
         res <- cur_res()
         if (is.null(res)) {
-          return(DT::datatable(
-            data.frame(note = "暂无结果"),
-            rownames = FALSE,
-            options = list(dom = "t")
-          ))
+          return(DT::datatable(data.frame(note = "\u6682\u65e0\u7ed3\u679c"), rownames = FALSE, options = list(dom = "t")))
         }
 
         base_tbl <- res$summary %||% fw_make_flux_summary_table(res$daily)
@@ -653,14 +471,9 @@ mod_flux_server <- function(id, rv) {
         keep <- keep[keep %in% names(tbl)]
         if (length(keep) > 0) tbl <- tbl[, keep, drop = FALSE]
 
-        cn_map <- c(
-          calc_result = "计算结果",
-          date = "时间",
-          station = "站点",
-          WYBM = "WYBM",
-          Q = "流量",
-          flux = "通量"
-        )
+        cn_map <- c(calc_result = "\u8ba1\u7b97\u7ed3\u679c", date = "\u65f6\u95f4",
+                    station = "\u7ad9\u70b9", WYBM = "WYBM", Q = "\u6d41\u91cf",
+                    flux = "\u901a\u91cf")
         for (nm in names(cn_map)) {
           if (nm %in% names(tbl)) names(tbl)[names(tbl) == nm] <- cn_map[[nm]]
         }
@@ -668,31 +481,34 @@ mod_flux_server <- function(id, rv) {
         DT::datatable(tbl, rownames = FALSE, options = list(pageLength = 10, scrollX = TRUE))
       })
 
+      # ---- 通量时序图 ----
       output[[paste0("plot_ts_", key)]] <- plotly::renderPlotly({
         res <- cur_res()
         if (is.null(res)) return(plotly::plot_ly())
-        fw_plot_flux_ts(res$daily, title = paste0(res$method_label, " - 当前方案"))
+        fw_plot_flux_ts(res$daily, title = paste0(res$method_label, " - \u5f53\u524d\u65b9\u6848"))
       })
 
+      # ---- 诊断图（复合法使用专属诊断图，其余用通用）----
       output[[paste0("plot_diag_", key)]] <- shiny::renderPlot({
         res <- cur_res()
         shiny::req(res)
-        fw_plot_flux_diag(res)
+        if (identical(key, "composite")) {
+          fw_composite_render_diag(res)
+        } else {
+          fw_plot_flux_diag(res)
+        }
       })
 
+      # ---- 历史表 ----
       output[[paste0("tbl_history_", key)]] <- DT::renderDataTable({
         h <- hist_res()
         if (is.null(h) || is.null(h$meta) || nrow(h$meta) == 0) {
-          return(DT::datatable(
-            data.frame(note = "暂无历史记录"),
-            rownames = FALSE,
-            options = list(dom = "t")
-          ))
+          return(DT::datatable(data.frame(note = "\u6682\u65e0\u5386\u53f2\u8bb0\u5f55"), rownames = FALSE, options = list(dom = "t")))
         }
-
         DT::datatable(h$meta, rownames = FALSE, options = list(pageLength = 6, scrollX = TRUE))
       })
 
+      # ---- 下载: 汇总表 ----
       output[[paste0("download_summary_", key)]] <- shiny::downloadHandler(
         filename = function() paste0("flux_", key, "_summary_daily_", Sys.Date(), ".csv"),
         content = function(file) {
@@ -706,6 +522,7 @@ mod_flux_server <- function(id, rv) {
         }
       )
 
+      # ---- 下载: 时序 ----
       output[[paste0("download_ts_", key)]] <- shiny::downloadHandler(
         filename = function() paste0("flux_", key, "_timeseries_daily_", Sys.Date(), ".csv"),
         content = function(file) {
@@ -715,32 +532,32 @@ mod_flux_server <- function(id, rv) {
           } else {
             d <- as.data.frame(res$daily, stringsAsFactors = FALSE)
             if (!("date" %in% names(d)) && "TM" %in% names(d)) d$date <- fw_as_date(d$TM)
-
             keep <- c("date", "station", "WYBM", "Q", "C_obs", "C_est", "flux", "method", "C_source")
             keep <- keep[keep %in% names(d)]
             if (length(keep) > 0) d <- d[, keep, drop = FALSE]
-
             utils::write.csv(d, file, row.names = FALSE)
           }
         }
       )
 
+      # ---- 下载: 诊断图（复合法使用专属诊断图）----
       output[[paste0("download_diag_", key)]] <- shiny::downloadHandler(
         filename = function() paste0("flux_", key, "_diagnostic_", Sys.Date(), ".png"),
         content = function(file) {
           res <- cur_res()
-          grDevices::png(file, width = 1400, height = 900, res = 130)
+          grDevices::png(file, width = 1600, height = 1000, res = 130)
           on.exit(grDevices::dev.off(), add = TRUE)
-
           if (is.null(res)) {
-            graphics::plot.new()
-            graphics::text(0.5, 0.5, "No diagnostic result")
+            graphics::plot.new(); graphics::text(0.5, 0.5, "No diagnostic result")
+          } else if (identical(key, "composite")) {
+            fw_composite_render_diag(res)
           } else {
             fw_plot_flux_diag(res)
           }
         }
       )
 
+      # ---- 下载: 当前结果 ----
       output[[paste0("download_current_", key)]] <- shiny::downloadHandler(
         filename = function() {
           res <- cur_res()
@@ -761,6 +578,7 @@ mod_flux_server <- function(id, rv) {
         }
       )
 
+      # ---- 下载: 历史 ----
       output[[paste0("download_history_", key)]] <- shiny::downloadHandler(
         filename = function() paste0("flux_", key, "_history_", Sys.Date(), ".csv"),
         content = function(file) {
@@ -774,38 +592,28 @@ mod_flux_server <- function(id, rv) {
       )
     })
 
-    # -------- 新增：方法对比逻辑 --------
+    # ======== 方法对比 ========
+
     available_methods <- shiny::reactive({
       cur <- rv$flux_current
       if (is.null(cur) || !is.list(cur)) return(character(0))
-
       keep <- vapply(method_keys, function(m) {
         x <- cur[[m]]
         !is.null(x) && is.list(x) && !is.null(x$daily) && is.data.frame(x$daily) && nrow(x$daily) > 0
       }, logical(1))
-
       method_keys[keep]
     })
 
     observe({
       avail <- available_methods()
       if (length(avail) == 0) {
-        shiny::updateCheckboxGroupInput(
-          session, "compare_methods",
-          choices = character(0), selected = character(0)
-        )
+        shiny::updateCheckboxGroupInput(session, "compare_methods", choices = character(0), selected = character(0))
         return()
       }
-
       ch <- stats::setNames(avail, vapply(avail, fw_flux_method_label, character(1)))
       sel <- intersect(isolate(input$compare_methods), avail)
       if (length(sel) == 0) sel <- avail[1]
-
-      shiny::updateCheckboxGroupInput(
-        session, "compare_methods",
-        choices = ch,
-        selected = sel
-      )
+      shiny::updateCheckboxGroupInput(session, "compare_methods", choices = ch, selected = sel)
     })
 
     compare_long <- shiny::eventReactive(
@@ -813,7 +621,6 @@ mod_flux_server <- function(id, rv) {
       {
         avail <- available_methods()
         if (length(avail) == 0) return(NULL)
-
         sel <- input$compare_methods %||% character(0)
         sel <- intersect(sel, avail)
         if (length(sel) == 0) sel <- avail[1]
@@ -821,94 +628,61 @@ mod_flux_server <- function(id, rv) {
         out <- lapply(sel, function(m) {
           res <- rv$flux_current[[m]]
           if (is.null(res) || !is.list(res) || is.null(res$daily) || !is.data.frame(res$daily)) return(NULL)
-
           d <- as.data.frame(res$daily, stringsAsFactors = FALSE)
           if (!("date" %in% names(d)) && "TM" %in% names(d)) d$date <- fw_as_date(d$TM)
           if (!all(c("date", "flux") %in% names(d))) return(NULL)
-
-          dd <- data.frame(
-            date = fw_as_date(d$date),
-            flux = fw_as_num(d$flux),
-            method = m,
-            method_label = fw_flux_method_label(m),
-            stringsAsFactors = FALSE
-          )
-
+          dd <- data.frame(date = fw_as_date(d$date), flux = fw_as_num(d$flux),
+                           method = m, method_label = fw_flux_method_label(m), stringsAsFactors = FALSE)
           dd <- dd[!is.na(dd$date) & is.finite(dd$flux), , drop = FALSE]
-          if (nrow(dd) == 0) return(NULL)
-          dd
+          if (nrow(dd) == 0) NULL else dd
         })
-
         out <- Filter(Negate(is.null), out)
         if (length(out) == 0) return(NULL)
-
         dd <- do.call(rbind, out)
-        dd <- dd[order(dd$date), , drop = FALSE]
-        rownames(dd) <- NULL
+        dd <- dd[order(dd$date), , drop = FALSE]; rownames(dd) <- NULL
         dd
-      },
-      ignoreNULL = FALSE,
-      ignoreInit = FALSE
+      }, ignoreNULL = FALSE, ignoreInit = FALSE
     )
 
     output$compare_plot <- plotly::renderPlotly({
       dd <- compare_long()
       if (is.null(dd) || nrow(dd) == 0) return(plotly::plot_ly())
-
-      p <- plotly::plot_ly(
-        dd,
-        x = ~date,
-        y = ~flux,
-        color = ~method_label,
-        type = "scatter",
-        mode = "lines",
-        hovertemplate = "日期: %{x}<br>通量: %{y:.4f} kg/d<extra></extra>"
-      )
-
-      plotly::layout(
-        p,
-        title = "方法对比：日通量时序",
-        xaxis = list(title = "日期"),
-        yaxis = list(title = "通量 (kg/d)"),
-        legend = list(orientation = "h")
-      )
+      p <- plotly::plot_ly(dd, x = ~date, y = ~flux, color = ~method_label,
+                           type = "scatter", mode = "lines",
+                           hovertemplate = "\u65e5\u671f: %{x}<br>\u901a\u91cf: %{y:.4f} kg/d<extra></extra>")
+      plotly::layout(p, title = "\u65b9\u6cd5\u5bf9\u6bd4\uff1a\u65e5\u901a\u91cf\u65f6\u5e8f",
+                     xaxis = list(title = "\u65e5\u671f"), yaxis = list(title = "\u901a\u91cf (kg/d)"),
+                     legend = list(orientation = "h"))
     })
 
     output$compare_table <- DT::renderDT({
       dd <- compare_long()
       if (is.null(dd) || nrow(dd) == 0) {
-        return(DT::datatable(
-          data.frame(note = "暂无可对比数据"),
-          rownames = FALSE,
-          options = list(dom = "t")
-        ))
+        return(DT::datatable(data.frame(note = "\u6682\u65e0\u53ef\u5bf9\u6bd4\u6570\u636e"), rownames = FALSE, options = list(dom = "t")))
       }
-
       sp <- split(dd, dd$method_label)
-
       one_row <- function(lbl, z) {
-        z <- z[order(z$date), , drop = FALSE]
-        d_ok <- z$date[!is.na(z$date)]
-        data.frame(
-          方法名称 = lbl,
-          `总通量(kg)` = round(sum(z$flux, na.rm = TRUE), 4),
-          `平均日通量(kg/d)` = round(mean(z$flux, na.rm = TRUE), 4),
-          有效天数 = sum(is.finite(z$flux)),
-          起始日期 = if (length(d_ok) > 0) as.character(min(d_ok)) else NA_character_,
-          结束日期 = if (length(d_ok) > 0) as.character(max(d_ok)) else NA_character_,
-          check.names = FALSE,
-          stringsAsFactors = FALSE
-        )
+        z <- z[order(z$date), , drop = FALSE]; d_ok <- z$date[!is.na(z$date)]
+        df <- data.frame(
+          method_name = lbl,
+          total_flux  = round(sum(z$flux, na.rm = TRUE), 4),
+          mean_flux   = round(mean(z$flux, na.rm = TRUE), 4),
+          valid_days  = sum(is.finite(z$flux)),
+          start_date  = if (length(d_ok) > 0) as.character(min(d_ok)) else NA_character_,
+          end_date    = if (length(d_ok) > 0) as.character(max(d_ok)) else NA_character_,
+          stringsAsFactors = FALSE)
+        names(df) <- c("\u65b9\u6cd5\u540d\u79f0",
+                       "\u603b\u901a\u91cf(kg)",
+                       "\u5e73\u5747\u65e5\u901a\u91cf(kg/d)",
+                       "\u6709\u6548\u5929\u6570",
+                       "\u8d77\u59cb\u65e5\u671f",
+                       "\u7ed3\u675f\u65e5\u671f")
+        df
       }
 
       tbl <- do.call(rbind, lapply(names(sp), function(lbl) one_row(lbl, sp[[lbl]])))
       rownames(tbl) <- NULL
-
-      DT::datatable(
-        tbl,
-        rownames = FALSE,
-        options = list(pageLength = 10, scrollX = TRUE)
-      )
+      DT::datatable(tbl, rownames = FALSE, options = list(pageLength = 10, scrollX = TRUE))
     })
   })
 }
