@@ -1,3 +1,4 @@
+
 # =====================================================================
 # fct_flux.R
 # 通量计算模块 —— 共享计算函数
@@ -115,8 +116,7 @@ fw_append_flux_history <- function(history, method, res, station = "ALL") {
     n_days     = if (is.data.frame(d)) nrow(d) else NA_integer_,
     total_flux = if (is.data.frame(d) && "flux" %in% names(d)) round(sum(d$flux, na.rm = TRUE), 4) else NA_real_,
     mean_flux  = if (is.data.frame(d) && "flux" %in% names(d)) round(mean(d$flux, na.rm = TRUE), 4) else NA_real_,
-    param1       = p$param1       %||% NA_real_,
-    param2       = p$param2       %||% NA_real_,
+    # ← 已删除 param1 / param2 列
     model_choice = p$model_choice %||% NA_character_,
     data_source  = p$data_source_label %||% p$data_source %||% NA_character_,
     date_start   = p$date_start   %||% NA_character_,
@@ -164,18 +164,14 @@ fw_plot_flux_diag <- function(res) {
 
 fw_run_flux_with_config <- function(dat_daily = NULL,
                                     method = c("weighted", "interp", "ratio", "regression", "composite"),
-                                    date_range = NULL, param1 = 1, param2 = 1,
+                                    date_range = NULL,
+                                    # ← 已删除 param1 / param2 参数
                                     conv_factor = 86.4, step1_data = NULL,
                                     regression_cfg = list(), composite_cfg = list()) {
   method <- match.arg(method)
-  to_scalar_num <- function(x, default = 1) {
-    x <- suppressWarnings(as.numeric(x))
-    if (length(x) == 0 || !is.finite(x[1])) return(default)
-    x[1]
-  }
-  p1 <- to_scalar_num(param1, 1); p2 <- to_scalar_num(param2, 1)
+  # ← 已删除 to_scalar_num / p1 / p2
 
-  # ---- 回归法 → 专属入口 (fct_flux_regression.R) ----
+  # ---- 回归法专属入口 (fct_flux_regression.R) ----
   if (identical(method, "regression") && !is.null(step1_data)) {
     return(fw_run_flux_regression_loadflex(
       step1_data   = step1_data,
@@ -183,18 +179,19 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
       wq_sheet     = regression_cfg$wq_sheet     %||% NULL,
       constituent  = regression_cfg$constituent  %||% "TN",
       date_range   = date_range,
-      model_choice = regression_cfg$model_choice %||% "loadLm_season",
-      param1 = p1, param2 = p2))
+      model_choice = regression_cfg$model_choice %||% "loadLm_season"))
+    # ← 已删除 param1 = p1, param2 = p2
   }
 
-  # ---- 复合法 → 专属入口 (fct_flux_composite.R) ----
+  # ---- 复合法专属入口 (fct_flux_composite.R) ----
   if (identical(method, "composite") && length(composite_cfg) > 0) {
     return(fw_run_composite_method(
       dat_daily     = dat_daily,
       sub_method    = composite_cfg$sub_method    %||% "abs_linear",
       reg_model     = composite_cfg$reg_model     %||% "lm_season",
       interp_method = composite_cfg$interp_method %||% "linearInterpolation",
-      conv_factor   = conv_factor, param1 = p1, param2 = p2,
+      conv_factor   = conv_factor,
+      # ← 已删除 param1 = p1, param2 = p2
       wrtds_windowY = composite_cfg$wrtds_windowY %||% 7,
       wrtds_windowQ = composite_cfg$wrtds_windowQ %||% 2,
       wrtds_windowS = composite_cfg$wrtds_windowS %||% 0.5,
@@ -226,13 +223,6 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
 
   res <- calc_fn(d, conv_factor = conv_factor)
 
-  # 应用 param1 / param2
-  res$daily$C_est <- fw_as_num(res$daily$C_est) * p1
-  res$daily$flux <- ifelse(
-    is.finite(res$daily$Q) & is.finite(res$daily$C_est),
-    res$daily$Q * res$daily$C_est * conv_factor * p2,
-    NA_real_)
-
   if (exists("fw_fill_daily_id_from_source", mode = "function")) {
     res$daily <- fw_fill_daily_id_from_source(res$daily, d, "station", c("station", "STNM_WQ", "STNM"))
     res$daily <- fw_fill_daily_id_from_source(res$daily, d, "WYBM",    c("WYBM", "WYBM_WQ"))
@@ -242,7 +232,8 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
   d_start <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date))) as.character(min(res$daily$date, na.rm = TRUE)) else NA_character_
   d_end   <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date))) as.character(max(res$daily$date, na.rm = TRUE)) else NA_character_
   res$params <- c(res$params %||% list(),
-                  list(param1 = p1, param2 = p2, conv_factor = conv_factor,
+                  list(conv_factor = conv_factor,
+                       # ← 已删除 param1 = p1, param2 = p2
                        date_start = d_start, date_end = d_end))
   res
 }

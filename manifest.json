@@ -153,6 +153,44 @@
         "Built": "R 4.4.1; ; 2026-02-04 04:43:21 UTC; windows"
       }
     },
+    "EGRETci": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "EGRETci",
+        "Type": "Package",
+        "Title": "Exploration and Graphics for RivEr Trends Confidence Intervals",
+        "Version": "2.0.5",
+        "Authors@R": "c(person(\"Laura\", \"DeCicco\", role = c(\"aut\",\"cre\"),\n    email = \"ldecicco@usgs.gov\",\n    comment=c(ORCID=\"0000-0002-3915-9487\")),\n    person(\"Robert\", \"Hirsch\", role = c(\"aut\"),\n    email = \"rhirsch@usgs.gov\",\n    comment=c(ORCID=\"0000-0002-4534-075X\")),\n    person(\"Stacey\",\"Archfield\", role = c(\"ctb\"),\n    email = \"sarch@usgs.gov\",\n    comment=c(ORCID=\"0000-0002-9011-3871\")),   \n    person(\"Jennifer\",\"Murphy\", role = c(\"ctb\"),\n    email = \"jmurphy@usgs.gov\",\n    comment=c(ORCID=\"0000-0002-0881-0919\")))",
+        "Description": "Collection of functions to evaluate uncertainty of results from\n    water quality analysis using the Weighted Regressions on Time Discharge and\n    Season (WRTDS) method. This package is an add-on to the EGRET package that\n    performs the WRTDS analysis. The WRTDS modeling\n    method was initially introduced and discussed in Hirsch et al. (2010) <doi:10.1111/j.1752-1688.2010.00482.x>,\n    and expanded in Hirsch and De Cicco (2015) <doi:10.3133/tm4A10>. The \n    paper describing the uncertainty and confidence interval calculations \n    is Hirsch et al. (2015) <doi:10.1016/j.envsoft.2015.07.017>.",
+        "License": "CC0",
+        "Depends": "R (>= 3.5.0)",
+        "Imports": "EGRET(>= 3.0.5), binom, stats, graphics, utils, foreach",
+        "Suggests": "knitr, testthat, doParallel, iterators, rmarkdown, pkgdown,\ncovr",
+        "LazyLoad": "yes",
+        "LazyData": "yes",
+        "VignetteBuilder": "knitr",
+        "BuildVignettes": "true",
+        "BugReports": "https://github.com/DOI-USGS/EGRETci/issues",
+        "Copyright": "This software is in the public domain because it contains\nmaterials that originally came from the United States\nGeological Survey, an agency of the United States Department of\nInterior. For more information, see the official USGS copyright\npolicy at\nhhttps://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+        "RoxygenNote": "7.3.2",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-04-17 19:03:07 UTC; ldecicco",
+        "Author": "Laura DeCicco [aut, cre] (<https://orcid.org/0000-0002-3915-9487>),\n  Robert Hirsch [aut] (<https://orcid.org/0000-0002-4534-075X>),\n  Stacey Archfield [ctb] (<https://orcid.org/0000-0002-9011-3871>),\n  Jennifer Murphy [ctb] (<https://orcid.org/0000-0002-0881-0919>)",
+        "Maintainer": "Laura DeCicco <ldecicco@usgs.gov>",
+        "Repository": "RSPM",
+        "Date/Publication": "2025-04-17 20:00:01 UTC",
+        "Built": "R 4.4.0; ; 2025-04-18 05:01:25 UTC; windows",
+        "RemoteType": "standard",
+        "RemoteRef": "EGRETci",
+        "RemotePkgRef": "EGRETci",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "2.0.5"
+      }
+    },
     "Formula": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -850,6 +888,35 @@
         "RemoteReposName": "CRAN",
         "RemotePkgPlatform": "x86_64-w64-mingw32",
         "RemoteSha": "0.1-6"
+      }
+    },
+    "binom": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "binom",
+        "Title": "Binomial Confidence Intervals for Several Parameterizations",
+        "Version": "1.1-1.1",
+        "Date": "2014-01-01",
+        "Author": "Sundar Dorai-Raj <sundar.dorai-raj@pdf.com>",
+        "Description": "Constructs confidence intervals on the probability of\n        success in a binomial experiment via several parameterizations.",
+        "Maintainer": "Sundar Dorai-Raj <sdorairaj@gmail.com>",
+        "Suggests": "lattice, polynom, tcltk, ggplot2",
+        "License": "GPL",
+        "Packaged": "2022-05-02 10:19:37 UTC; hornik",
+        "NeedsCompilation": "yes",
+        "Repository": "RSPM",
+        "Date/Publication": "2022-05-02 13:01:46 UTC",
+        "Encoding": "UTF-8",
+        "Built": "R 4.4.0; x86_64-w64-mingw32; 2024-04-25 18:48:42 UTC; windows",
+        "Archs": "x64",
+        "RemoteType": "standard",
+        "RemoteRef": "binom",
+        "RemotePkgRef": "binom",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "1.1-1.1"
       }
     },
     "bit": {
@@ -2062,31 +2129,32 @@
       "description": {
         "Package": "fs",
         "Title": "Cross-Platform File System Operations Based on 'libuv'",
-        "Version": "1.6.6",
-        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Version": "1.6.7",
+        "Authors@R": "c(\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Gábor\", \"Csárdi\", role = \"aut\"),\n    person(\"Jeroen\", \"Ooms\", , \"jeroenooms@gmail.com\", role = \"cre\"),\n    person(\"libuv project contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Joyent, Inc. and other Node contributors\", role = \"cph\",\n           comment = \"libuv library\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
         "Description": "A cross-platform interface to file system operations, built\n    on top of the 'libuv' C library.",
         "License": "MIT + file LICENSE",
         "URL": "https://fs.r-lib.org, https://github.com/r-lib/fs",
         "BugReports": "https://github.com/r-lib/fs/issues",
-        "Depends": "R (>= 3.6)",
+        "Depends": "R (>= 4.1)",
         "Imports": "methods",
         "Suggests": "covr, crayon, knitr, pillar (>= 1.0.0), rmarkdown, spelling,\ntestthat (>= 3.0.0), tibble (>= 1.1.0), vctrs (>= 0.3.0), withr",
         "VignetteBuilder": "knitr",
         "ByteCompile": "true",
         "Config/Needs/website": "tidyverse/tidytemplate",
         "Config/testthat/edition": "3",
+        "Config/usethis/last-upkeep": "2025-04-23",
         "Copyright": "file COPYRIGHTS",
         "Encoding": "UTF-8",
         "Language": "en-US",
-        "RoxygenNote": "7.2.3",
+        "RoxygenNote": "7.3.3",
         "SystemRequirements": "GNU make",
         "NeedsCompilation": "yes",
-        "Packaged": "2025-04-12 09:39:13 UTC; gaborcsardi",
-        "Author": "Jim Hester [aut],\n  Hadley Wickham [aut],\n  Gábor Csárdi [aut, cre],\n  libuv project contributors [cph] (libuv library),\n  Joyent, Inc. and other Node contributors [cph] (libuv library),\n  Posit Software, PBC [cph, fnd]",
-        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Packaged": "2026-03-05 19:41:13 UTC; jeroen",
+        "Author": "Jim Hester [aut],\n  Hadley Wickham [aut],\n  Gábor Csárdi [aut],\n  Jeroen Ooms [cre],\n  libuv project contributors [cph] (libuv library),\n  Joyent, Inc. and other Node contributors [cph] (libuv library),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "RSPM",
-        "Date/Publication": "2025-04-12 10:40:02 UTC",
-        "Built": "R 4.4.0; x86_64-w64-mingw32; 2025-12-02 12:31:28 UTC; windows",
+        "Date/Publication": "2026-03-06 09:00:03 UTC",
+        "Built": "R 4.4.0; x86_64-w64-mingw32; 2026-03-07 04:37:55 UTC; windows",
         "Archs": "x64",
         "RemoteType": "standard",
         "RemoteRef": "fs",
@@ -2094,7 +2162,7 @@
         "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
         "RemoteReposName": "CRAN",
         "RemotePkgPlatform": "x86_64-w64-mingw32",
-        "RemoteSha": "1.6.6"
+        "RemoteSha": "1.6.7"
       }
     },
     "generics": {
@@ -5436,7 +5504,7 @@
       }
     },
     "unitted": {
-      "Source": "Cellar",
+      "Source": "github",
       "Repository": null,
       "description": {
         "Package": "unitted",
@@ -5452,10 +5520,20 @@
         "Imports": "methods, lazyeval, dplyr (>= 0.5.0), tibble (>= 1.1.0)",
         "Suggests": "testthat",
         "Collate": "'01-parse.R' '02-unitbundle.R' '03-unitted.R' 'access.R'\n'arithmetic.R' 'assign.R' 'combine.R' 'convert.R' 'display.R'\n'dplyr.R' 'dplyr_join.R' 'inspect.R' 'package-unitted.R'\n'tibble.R' 'write.R' 'zzz.R'",
-        "RoxygenNote": "6.0.1",
+        "RoxygenNote": "7.3.3",
         "NeedsCompilation": "no",
-        "Packaged": "2026-03-13 07:53:16 UTC; PC",
-        "Built": "R 4.4.1; ; 2026-03-13 08:56:19 UTC; windows"
+        "Packaged": "2026-03-19 01:02:49 UTC; PC",
+        "RemoteType": "github",
+        "RemoteHost": "api.github.com",
+        "RemoteRepo": "unitted",
+        "RemoteUsername": "panghudebaba",
+        "RemoteRef": "HEAD",
+        "RemoteSha": "dd98c137f6274dfe51cb487d96b3f6ea022a75e0",
+        "GithubRepo": "unitted",
+        "GithubUsername": "panghudebaba",
+        "GithubRef": "HEAD",
+        "GithubSHA1": "dd98c137f6274dfe51cb487d96b3f6ea022a75e0",
+        "Built": "R 4.4.1; ; 2026-03-19 01:02:50 UTC; windows"
       }
     },
     "urca": {
@@ -5968,17 +6046,23 @@
     }
   },
   "files": {
+    ".RData": {
+      "checksum": "60e2e2ef9e45b48d27962992a0775d13"
+    },
     ".Rprofile": {
-      "checksum": "7646b51fb18781811ef0ee1afc369688"
+      "checksum": "0e0b3eaffef39370fa953ecf0413050b"
     },
     "app.R": {
-      "checksum": "cdc7b42cd4de9072b0f496aa0d08031a"
+      "checksum": "2f841fcefd82b93e40153ec3832cbc07"
     },
     "csv/Dailyflow_WE38_1983_2012.xlsx": {
       "checksum": "4243779bffe4b978306496e29449a73f"
     },
     "csv/EGRET_loadflex_通量计算标准数据模板.xlsx": {
       "checksum": "cbfba0db971e5ddc521d8462f5b73f00"
+    },
+    "csv/EGRET_loadflex_通量计算标准数据模板_HZS.xlsx": {
+      "checksum": "9907719404b3078232170eca2a9eb0f0"
     },
     "csv/Water_quality_WE_38_20150504.csv": {
       "checksum": "6114c0d29ebf4bffbc37993919ba0a52"
@@ -5999,16 +6083,31 @@
       "checksum": "5387fd7be2adbadbd66646065cc0dd72"
     },
     "R/app_ui.R": {
-      "checksum": "cbbd554dd6e3a27d0b8eee37a3796d46"
+      "checksum": "6b21e4ad0c1708836e8ca87beece10fc"
     },
     "R/fct_flux.R": {
-      "checksum": "787f61d696dad2e7a64d2441c773d1ff"
+      "checksum": "6b7ef7bc757a5a6655831a4f39936f10"
+    },
+    "R/fct_flux_composite.R": {
+      "checksum": "1f7bd4d7c498fbe976466fb173b74cc6"
+    },
+    "R/fct_flux_interp.R": {
+      "checksum": "4d0eccd131b083d0c7690024cbc8ca2b"
+    },
+    "R/fct_flux_ratio.R": {
+      "checksum": "5b5053502581ef3437b085b0116e20f5"
+    },
+    "R/fct_flux_regression.R": {
+      "checksum": "a8ec9d79feb6c81c5c1562e8b022d773"
+    },
+    "R/fct_flux_weighted.R": {
+      "checksum": "33046f038a15050abfc395a5d75a4161"
     },
     "R/fct_ingest.R": {
       "checksum": "e0b92a8066e5cc4542d555b763a6d2ca"
     },
     "R/fct_viz.R": {
-      "checksum": "44f2dd98198eeb632d557431411a766f"
+      "checksum": "0fa302a6163c141fa57cad00b64831f8"
     },
     "R/mod_about.R": {
       "checksum": "e4a38e498ab77ff7c7ae27f09089640b"
@@ -6020,7 +6119,13 @@
       "checksum": "f3e95c267d841021a7fd5ecec73bb84f"
     },
     "R/mod_flux.R": {
-      "checksum": "937b6f636f5c4658a45af1efe2a4d7c3"
+      "checksum": "4b701473c5c340222a023166dc00e8d3"
+    },
+    "R/mod_flux_composite.R": {
+      "checksum": "bd5bf4c75872f0e5e1909e562ad19753"
+    },
+    "R/mod_flux_regression.R": {
+      "checksum": "69dfcdcff8a767426c000e3a4eb540f0"
     },
     "R/mod_ingest.R": {
       "checksum": "beeb0e4b7fbfea3c091f658f99ee3c8b"
@@ -6029,7 +6134,7 @@
       "checksum": "164df20e303113d20898e784eecc58d0"
     },
     "R/mod_viz.R": {
-      "checksum": "37a8d7ae65225bbd5350c1098ef014d1"
+      "checksum": "78b1e4ab96f07f08e3ef2d5ca3e98d63"
     },
     "R/mod_welcome.R": {
       "checksum": "d3d9cb94a1c89291a0a94a8cc62d012b"
@@ -6041,16 +6146,25 @@
       "checksum": "399592aba406af29645932950d4a8139"
     },
     "R/utils_flux.R": {
-      "checksum": "0115b160df579d0d59c054b887881fcd"
+      "checksum": "5cb3d0ff3941bf378ab20e07f4485fe8"
     },
-    "R/utils_plot.R": {
-      "checksum": "57f731820e4184366321c81f769dc8fb"
+    "R/utils_flux_composite.R": {
+      "checksum": "bf5f13ceaa3691a6535eb7b6d45f0fa2"
+    },
+    "R/utils_flux_regression.R": {
+      "checksum": "1bd15b6ee88cde450af41fed2cd8b2f7"
+    },
+    "R/utils_load_calc_grab.R": {
+      "checksum": "56fd9fcc1d2f9de60a7de6b8833c61ca"
     },
     "R/utils_report.R": {
       "checksum": "c01cbbe44d224318b3b4db6cc9156276"
     },
+    "R/utils_viz.R": {
+      "checksum": "0ed6319ca5a0c0860471a0beffb3bf2c"
+    },
     "renv.lock": {
-      "checksum": "a2fb84301249a06281afd6936379c461"
+      "checksum": "eef3ee974af6706428e068b8242e3dcd"
     },
     "server.R": {
       "checksum": "138699d936fd18fba89cbe1d86e712e5"
@@ -6058,11 +6172,14 @@
     "ui.R": {
       "checksum": "6211bef670aaf8a3630ea0473190b1ce"
     },
+    "www/custom.css": {
+      "checksum": "58c2a32ff6be4c94a4c3e46b256a4b43"
+    },
     "www/logo.png": {
       "checksum": "d9d38bd01149f58b3c4da53dc8f8decb"
     },
     "通量宝开发笔记-hjli-20260304.Rmd": {
-      "checksum": "7cf8a3c8af4596a736424f7f0adf5d19"
+      "checksum": "b6d027dcef8c9e5531dc4cdac6f0f0eb"
     }
   },
   "users": null

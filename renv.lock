@@ -181,6 +181,48 @@
       "Author": "Robert Hirsch [aut] (<https://orcid.org/0000-0002-4534-075X>), Laura DeCicco [aut, cre] (<https://orcid.org/0000-0002-3915-9487>), Tim Cohn [ctb], David Watkins [ctb], Lindsay Carr [ctb], Jennifer Murphy [aut] (<https://orcid.org/0000-0002-0881-0919>)",
       "Maintainer": "Laura DeCicco <ldecicco@usgs.gov>"
     },
+    "EGRETci": {
+      "Package": "EGRETci",
+      "Version": "2.0.5",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "Exploration and Graphics for RivEr Trends Confidence Intervals",
+      "Authors@R": "c(person(\"Laura\", \"DeCicco\", role = c(\"aut\",\"cre\"), email = \"ldecicco@usgs.gov\", comment=c(ORCID=\"0000-0002-3915-9487\")), person(\"Robert\", \"Hirsch\", role = c(\"aut\"), email = \"rhirsch@usgs.gov\", comment=c(ORCID=\"0000-0002-4534-075X\")), person(\"Stacey\",\"Archfield\", role = c(\"ctb\"), email = \"sarch@usgs.gov\", comment=c(ORCID=\"0000-0002-9011-3871\")),    person(\"Jennifer\",\"Murphy\", role = c(\"ctb\"), email = \"jmurphy@usgs.gov\", comment=c(ORCID=\"0000-0002-0881-0919\")))",
+      "Description": "Collection of functions to evaluate uncertainty of results from water quality analysis using the Weighted Regressions on Time Discharge and Season (WRTDS) method. This package is an add-on to the EGRET package that performs the WRTDS analysis. The WRTDS modeling method was initially introduced and discussed in Hirsch et al. (2010) <doi:10.1111/j.1752-1688.2010.00482.x>, and expanded in Hirsch and De Cicco (2015) <doi:10.3133/tm4A10>. The  paper describing the uncertainty and confidence interval calculations  is Hirsch et al. (2015) <doi:10.1016/j.envsoft.2015.07.017>.",
+      "License": "CC0",
+      "Depends": [
+        "R (>= 3.5.0)"
+      ],
+      "Imports": [
+        "EGRET(>= 3.0.5)",
+        "binom",
+        "stats",
+        "graphics",
+        "utils",
+        "foreach"
+      ],
+      "Suggests": [
+        "knitr",
+        "testthat",
+        "doParallel",
+        "iterators",
+        "rmarkdown",
+        "pkgdown",
+        "covr"
+      ],
+      "LazyLoad": "yes",
+      "LazyData": "yes",
+      "VignetteBuilder": "knitr",
+      "BuildVignettes": "true",
+      "BugReports": "https://github.com/DOI-USGS/EGRETci/issues",
+      "Copyright": "This software is in the public domain because it contains materials that originally came from the United States Geological Survey, an agency of the United States Department of Interior. For more information, see the official USGS copyright policy at hhttps://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits",
+      "RoxygenNote": "7.3.2",
+      "Encoding": "UTF-8",
+      "NeedsCompilation": "no",
+      "Author": "Laura DeCicco [aut, cre] (<https://orcid.org/0000-0002-3915-9487>), Robert Hirsch [aut] (<https://orcid.org/0000-0002-4534-075X>), Stacey Archfield [ctb] (<https://orcid.org/0000-0002-9011-3871>), Jennifer Murphy [ctb] (<https://orcid.org/0000-0002-0881-0919>)",
+      "Maintainer": "Laura DeCicco <ldecicco@usgs.gov>",
+      "Repository": "CRAN"
+    },
     "Formula": {
       "Package": "Formula",
       "Version": "1.2-5",
@@ -843,6 +885,26 @@
       "License": "GPL-2 | GPL-3",
       "URL": "https://www.rforge.net/base64enc",
       "BugReports": "https://github.com/s-u/base64enc/issues",
+      "NeedsCompilation": "yes",
+      "Repository": "CRAN",
+      "Encoding": "UTF-8"
+    },
+    "binom": {
+      "Package": "binom",
+      "Version": "1.1-1.1",
+      "Source": "Repository",
+      "Title": "Binomial Confidence Intervals for Several Parameterizations",
+      "Date": "2014-01-01",
+      "Author": "Sundar Dorai-Raj <sundar.dorai-raj@pdf.com>",
+      "Description": "Constructs confidence intervals on the probability of success in a binomial experiment via several parameterizations.",
+      "Maintainer": "Sundar Dorai-Raj <sdorairaj@gmail.com>",
+      "Suggests": [
+        "lattice",
+        "polynom",
+        "tcltk",
+        "ggplot2"
+      ],
+      "License": "GPL",
       "NeedsCompilation": "yes",
       "Repository": "CRAN",
       "Encoding": "UTF-8"
@@ -2310,16 +2372,16 @@
     },
     "fs": {
       "Package": "fs",
-      "Version": "1.6.6",
+      "Version": "1.6.7",
       "Source": "Repository",
       "Title": "Cross-Platform File System Operations Based on 'libuv'",
-      "Authors@R": "c( person(\"Jim\", \"Hester\", role = \"aut\"), person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = \"aut\"), person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")), person(\"libuv project contributors\", role = \"cph\", comment = \"libuv library\"), person(\"Joyent, Inc. and other Node contributors\", role = \"cph\", comment = \"libuv library\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
+      "Authors@R": "c( person(\"Jim\", \"Hester\", role = \"aut\"), person(\"Hadley\", \"Wickham\", role = \"aut\"), person(\"Gábor\", \"Csárdi\", role = \"aut\"), person(\"Jeroen\", \"Ooms\", , \"jeroenooms@gmail.com\", role = \"cre\"), person(\"libuv project contributors\", role = \"cph\", comment = \"libuv library\"), person(\"Joyent, Inc. and other Node contributors\", role = \"cph\", comment = \"libuv library\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"), comment = c(ROR = \"03wc8by49\")) )",
       "Description": "A cross-platform interface to file system operations, built on top of the 'libuv' C library.",
       "License": "MIT + file LICENSE",
       "URL": "https://fs.r-lib.org, https://github.com/r-lib/fs",
       "BugReports": "https://github.com/r-lib/fs/issues",
       "Depends": [
-        "R (>= 3.6)"
+        "R (>= 4.1)"
       ],
       "Imports": [
         "methods"
@@ -2340,14 +2402,15 @@
       "ByteCompile": "true",
       "Config/Needs/website": "tidyverse/tidytemplate",
       "Config/testthat/edition": "3",
+      "Config/usethis/last-upkeep": "2025-04-23",
       "Copyright": "file COPYRIGHTS",
       "Encoding": "UTF-8",
       "Language": "en-US",
-      "RoxygenNote": "7.2.3",
+      "RoxygenNote": "7.3.3",
       "SystemRequirements": "GNU make",
       "NeedsCompilation": "yes",
-      "Author": "Jim Hester [aut], Hadley Wickham [aut], Gábor Csárdi [aut, cre], libuv project contributors [cph] (libuv library), Joyent, Inc. and other Node contributors [cph] (libuv library), Posit Software, PBC [cph, fnd]",
-      "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+      "Author": "Jim Hester [aut], Hadley Wickham [aut], Gábor Csárdi [aut], Jeroen Ooms [cre], libuv project contributors [cph] (libuv library), Joyent, Inc. and other Node contributors [cph] (libuv library), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+      "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
       "Repository": "CRAN"
     },
     "generics": {
@@ -6214,7 +6277,7 @@
     "unitted": {
       "Package": "unitted",
       "Version": "0.2.9",
-      "Source": "Cellar",
+      "Source": "GitHub",
       "Title": "Track Units as you Manipulate Data",
       "Description": "Attaches units to data.frames, vectors, etc. and maintains the correct units when you add, multiply, exponentiate, etc. those values.",
       "URL": "https://github.com/appling/unitted",
@@ -6235,8 +6298,14 @@
         "testthat"
       ],
       "Collate": "'01-parse.R' '02-unitbundle.R' '03-unitted.R' 'access.R' 'arithmetic.R' 'assign.R' 'combine.R' 'convert.R' 'display.R' 'dplyr.R' 'dplyr_join.R' 'inspect.R' 'package-unitted.R' 'tibble.R' 'write.R' 'zzz.R'",
-      "RoxygenNote": "6.0.1",
-      "NeedsCompilation": "no"
+      "RoxygenNote": "7.3.3",
+      "NeedsCompilation": "no",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "unitted",
+      "RemoteUsername": "panghudebaba",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "dd98c137f6274dfe51cb487d96b3f6ea022a75e0"
     },
     "urca": {
       "Package": "urca",

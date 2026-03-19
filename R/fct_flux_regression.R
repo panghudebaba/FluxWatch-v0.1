@@ -12,18 +12,9 @@ fw_run_flux_regression_loadflex <- function(step1_data,
                                             wq_sheet = NULL,
                                             constituent = "TN",
                                             date_range = NULL,
-                                            model_choice = c("loadLm_season", "loadLm_simple"),
-                                            param1 = 1,
-                                            param2 = 1) {
+                                            model_choice = c("loadLm_season", "loadLm_simple")) {
+  # ← 已删除 param1 / param2 参数及 to_scalar_num / p1 / p2
   model_choice <- match.arg(model_choice)
-
-  to_scalar_num <- function(x, default = 1) {
-    x <- suppressWarnings(as.numeric(x))
-    if (length(x) == 0 || !is.finite(x[1])) return(default)
-    x[1]
-  }
-  p1 <- to_scalar_num(param1, 1)
-  p2 <- to_scalar_num(param2, 1)
 
   prep <- fw_prepare_regression_input(
     step1_data = step1_data, qf_sheet = qf_sheet, wq_sheet = wq_sheet,
@@ -122,7 +113,7 @@ fw_run_flux_regression_loadflex <- function(step1_data,
   daily <- merge(daily, obs, by = "TM", all.x = TRUE, sort = TRUE)
 
   daily$C_obs <- daily$conc
-  daily$flux  <- fw_as_num(daily$load_kgd) * p1 * p2
+  daily$flux  <- fw_as_num(daily$load_kgd)   # ← 已删除 * p1 * p2
   daily$C_est <- ifelse(
     is.finite(daily$Q) & daily$Q > 0 & is.finite(daily$flux),
     daily$flux / (daily$Q * 86.4), NA_real_)
@@ -156,7 +147,8 @@ fw_run_flux_regression_loadflex <- function(step1_data,
     params = list(
       qf_sheet = prep$qf_sheet, wq_sheet = prep$wq_sheet,
       constituent = prep$constituent, model_choice = model_choice,
-      backend = backend, param1 = p1, param2 = p2,
+      backend = backend,
+      # ← 已删除 param1 = p1, param2 = p2
       data_source = "step1_qf_wq",
       data_source_label = paste0("第一步数据: QF$", prep$qf_sheet,
                                  " + WQ$", prep$wq_sheet, " [", prep$constituent, "]"),

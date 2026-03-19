@@ -44,8 +44,7 @@ mod_flux_method_page_ui <- function(ns, key) {
           title = shiny::tagList(shiny::icon("sliders-h"), " \u53c2\u6570\u8bbe\u7f6e"),
           left_extra,
           shiny::dateRangeInput(ns(paste0("daterange_", key)), "\u6570\u636e\u65f6\u95f4\u9009\u62e9", start = NULL, end = NULL),
-          shiny::numericInput(ns(paste0("param1_", key)), "\u53c2\u65701", value = 1, step = 0.1),
-          shiny::numericInput(ns(paste0("param2_", key)), "\u53c2\u65702", value = 1, step = 0.1),
+          # ← 已删除 param1 / param2 numericInput
           shiny::actionButton(
             ns(paste0("run_", key)), "\u5f00\u59cb\u8ba1\u7b97",
             icon = shiny::icon("play"), class = "btn-primary btn-block"
@@ -372,8 +371,7 @@ mod_flux_server <- function(id, rv) {
               dat_daily   = d,
               method      = key,
               date_range  = input[[paste0("daterange_", key)]],
-              param1      = input[[paste0("param1_", key)]],
-              param2      = input[[paste0("param2_", key)]],
+              # ← 已删除 param1 / param2 传参
               conv_factor = conv_factor_fixed
             ),
             error = function(e) { shiny::showNotification(e$message, type = "error"); NULL }
@@ -447,8 +445,7 @@ mod_flux_server <- function(id, rv) {
           "\n\u6570\u636e\u6e90: ", res$params$data_source_label %||% "auto",
           "\n\u7ad9\u70b9: ", st_txt, wy_line,
           "\n\u65f6\u95f4: ", dline,
-          "\n\u53c2\u65701: ", res$params$param1 %||% 1,
-          "\uff1b\u53c2\u65702: ", res$params$param2 %||% 1,
+          # ← 已删除参数1/参数2显示行
           if (key %in% simple_keys)
             paste0("\n\u6362\u7b97\u7cfb\u6570: ", conv_factor_fixed, "\uff08\u56fa\u5b9a\uff09") else "",
           extra,

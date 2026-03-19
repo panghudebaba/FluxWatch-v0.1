@@ -3,218 +3,306 @@
 # Visualization module
 # =========================================================
 
+# =========================================================
+# mod_viz.R  ——  仅 UI 部分重构，Server 不变
+# =========================================================
+
 mod_viz_ui <- function(id) {
   ns <- shiny::NS(id)
+
+  # ── 卡片式分节辅助函数 ─────────────────────────────────
+  section <- function(icon_name, title_zh, title_en, bar_colour = "#3c8dbc", ...) {
+    shiny::tags$div(
+      style = paste(
+        "border: 1px solid #d2d6de;",
+        "border-radius: 5px;",
+        "margin-bottom: 18px;"
+      ),
+      # 标题栏：仅上方圆角
+      shiny::tags$div(
+        style = paste0(
+          "background-color: ", bar_colour, ";",
+          "color: #ffffff;",
+          "padding: 9px 14px;",
+          "font-size: 15px;",
+          "font-weight: bold;",
+          "letter-spacing: 0.4px;",
+          "border-radius: 4px 4px 0 0;"
+        ),
+        shiny::icon(icon_name, style = "margin-right:7px; font-size:16px;"),
+        title_zh,
+        shiny::tags$span(
+          style = paste(
+            "font-weight: normal;",
+            "font-size: 12px;",
+            "margin-left: 8px;",
+            "opacity: 0.88;"
+          ),
+          title_en
+        )
+      ),
+      # 内容区：仅下方圆角，允许下拉菜单溢出
+      shiny::tags$div(
+        style = paste(
+          "padding: 13px 14px 11px 14px;",
+          "background: #fff;",
+          "border-radius: 0 0 4px 4px;",
+          "overflow: visible;"
+        ),
+        ...
+      )
+    )
+  }
+
 
   shinydashboard::tabItem(
     tabName = "viz",
 
     shiny::fluidRow(
+
+      # ════════════════════════════════════════════════════
+      # 左侧设置面板
+      # ════════════════════════════════════════════════════
       shinydashboard::box(
-        width = 4,
-        status = "primary",
+        width       = 4,
+        status      = "primary",
         solidHeader = TRUE,
-        title = shiny::tagList(shiny::icon("sliders-h"), " 图形设置 Plot Settings"),
-
-        shiny::radioButtons(
-          ns("data_source"),
-          "数据来源 Data source",
-          choices = c(
-            "使用第一步清洗结果 Use ingest result" = "ingest",
-            "上传新文件 Upload new file" = "upload"
-          ),
-          selected = "ingest"
+        title       = shiny::tagList(
+          shiny::icon("sliders-h"), " 图形设置 Plot Settings"
         ),
 
-        shiny::conditionalPanel(
-          condition = sprintf("input['%s'] == 'upload'", ns("data_source")),
-          ns = ns,
-          shiny::fileInput(
-            ns("viz_file"),
-            "上传文件 Upload file",
-            accept = c(".xlsx", ".xls", ".rds", ".csv"),
-            buttonLabel = "浏览 Browse",
-            placeholder = "未选择文件 No file selected",
-            width = "100%"
-          )
-        ),
+        # ══════════════════════════════════════════════════
+        # ① 数据选择
+        # ══════════════════════════════════════════════════
+        section(
+          "database", "① 数据选择", "Data Selection",
+          bar_colour = "#3c8dbc",
 
-        shiny::tags$hr(),
-
-        shiny::selectInput(
-          ns("plot_mode"),
-          "绘图模式 Plot mode",
-          choices = c(
-            "降雨 + 流量 + 水质 Rain + Flow + WQ" = "rain_flow_wq",
-            "流量 + 水质 Flow + WQ" = "flow_wq",
-            "同站点水质 + 流量 Linked WQ + Flow" = "linked_flow_wq",
-            "单个要素 Single variable" = "single"
-          ),
-          selected = "flow_wq"
-        ),
-
-        shiny::conditionalPanel(
-          condition = sprintf("input['%s'] == 'single'", ns("plot_mode")),
-          ns = ns,
-          shiny::selectInput(
-            ns("single_type"),
-            "单图类型 Single plot type",
+          shiny::radioButtons(
+            ns("data_source"),
+            "数据来源 Data source",
             choices = c(
-              "降雨 Rain" = "rain",
-              "流量 Flow" = "flow",
-              "水质 Water quality" = "wq"
+              "使用第一步清洗结果 Use ingest result" = "ingest",
+              "上传新文件 Upload new file"           = "upload"
             ),
-            selected = "flow"
+            selected = "ingest"
+          ),
+
+          shiny::conditionalPanel(
+            condition = sprintf("input['%s'] == 'upload'", ns("data_source")),
+            ns = ns,
+            shiny::fileInput(
+              ns("viz_file"),
+              "上传文件 Upload file",
+              accept      = c(".xlsx", ".xls", ".rds", ".csv"),
+              buttonLabel = "浏览 Browse",
+              placeholder = "未选择文件 No file selected",
+              width       = "100%"
+            )
+          ),
+
+          shiny::selectizeInput(
+            ns("rain_sites"),
+            "降雨站点 Rain sites",
+            choices  = NULL,
+            multiple = TRUE
+          ),
+
+          shiny::selectizeInput(
+            ns("flow_sites"),
+            "流量站点 Flow sites",
+            choices  = NULL,
+            multiple = TRUE
+          ),
+
+          shiny::selectizeInput(
+            ns("wq_sites"),
+            "水质站点 WQ sites",
+            choices  = NULL,
+            multiple = TRUE
+          ),
+
+          shiny::checkboxInput(
+            ns("use_topology_match"),
+            "同站点联动时使用 Topology 映射 Use Topology mapping for linked mode",
+            value = TRUE
+          ),
+
+          shiny::dateRangeInput(
+            ns("date_range"),
+            "时间范围 Date range",
+            start    = Sys.Date() - 30,
+            end      = Sys.Date(),
+            format   = "yyyy-mm-dd",
+            language = "zh-CN"
           )
         ),
 
-        shiny::selectInput(
-          ns("rain_panel_mode"),
-          "降雨面板 Rain panels",
-          choices = c(
-            "叠加 Overlay" = "overlay",
-            "按站点分面 Facet by site" = "facet_site"
+        # ══════════════════════════════════════════════════
+        # ② 绘图模式与指标选择
+        # ══════════════════════════════════════════════════
+        section(
+          "chart-bar", "② 绘图模式与指标", "Plot Mode & Indicators",
+          bar_colour = "#00a65a",
+
+          shiny::selectInput(
+            ns("plot_mode"),
+            "绘图模式 Plot mode",
+            choices = c(
+              "降雨 + 流量 + 水质 PP + QF + WQ"             = "rain_flow_wq",
+              "流量 + 水质 QF + WQ"                          = "flow_wq",
+              "同站点水质 + 流量 Linked WQ + QF"             = "linked_flow_wq",
+              "降雨 + 流量 + 浓度标记 PP + QF + Conc Label"  = "rain_flow_conclabel",
+              "logC-logQ 浓度-流量对数关系"      = "logc_logq",
+              "单个要素 Single variable"                      = "single"
+            ),
+            selected = "flow_wq"
           ),
-          selected = "overlay"
-        ),
 
-        shiny::selectInput(
-          ns("flow_panel_mode"),
-          "流量面板 Flow panels",
-          choices = c(
-            "叠加 Overlay" = "overlay",
-            "按站点分面 Facet by site" = "facet_site"
+          shiny::conditionalPanel(
+            condition = sprintf("input['%s'] == 'single'", ns("plot_mode")),
+            ns = ns,
+            shiny::selectInput(
+              ns("single_type"),
+              "单图类型 Single plot type",
+              choices = c(
+                "降雨 Rain"          = "rain",
+                "流量 Flow"          = "flow",
+                "水质 Water quality" = "wq"
+              ),
+              selected = "flow"
+            )
           ),
-          selected = "overlay"
-        ),
 
-        shiny::selectInput(
-          ns("wq_panel_mode"),
-          "水质面板 WQ panels",
-          choices = c(
-            "叠加 Overlay" = "overlay",
-            "按站点分面 Facet by site" = "facet_site",
-            "按指标分面 Facet by indicator" = "facet_var",
-            "站点 × 指标 Facet by site × indicator" = "facet_site_var"
+          shiny::selectInput(
+            ns("rain_panel_mode"),
+            "降雨面板 Rain panels",
+            choices = c(
+              "叠加 Overlay"             = "overlay",
+              "按站点分面 Facet by site" = "facet_site"
+            ),
+            selected = "overlay"
           ),
-          selected = "facet_site_var"
+
+          shiny::selectInput(
+            ns("flow_panel_mode"),
+            "流量面板 Flow panels",
+            choices = c(
+              "叠加 Overlay"             = "overlay",
+              "按站点分面 Facet by site" = "facet_site"
+            ),
+            selected = "overlay"
+          ),
+
+          shiny::selectInput(
+            ns("wq_panel_mode"),
+            "水质面板 WQ panels",
+            choices = c(
+              "叠加 Overlay"                          = "overlay",
+              "按站点分面 Facet by site"               = "facet_site",
+              "按指标分面 Facet by indicator"          = "facet_var",
+              "站点 × 指标 Facet by site × indicator" = "facet_site_var"
+            ),
+            selected = "facet_site_var"
+          ),
+
+          shiny::uiOutput(ns("ui_wq_vars"))
         ),
 
-        shiny::uiOutput(ns("ui_wq_vars")),
+        # ══════════════════════════════════════════════════
+        # ③ 图形参数设置
+        # ══════════════════════════════════════════════════
+        section(
+          "cog", "③ 图形参数", "Chart Parameters",
+          bar_colour = "#f39c12",
 
-        shiny::selectizeInput(
-          ns("rain_sites"),
-          "降雨站点 Rain sites",
-          choices = NULL,
-          multiple = TRUE
-        ),
+          shiny::fluidRow(
+            shiny::column(6,
+                          shiny::textInput(
+                            ns("date_breaks"),
+                            "时间刻度 Date breaks",
+                            value = "1 month"
+                          )
+            ),
+            shiny::column(6,
+                          shiny::textInput(
+                            ns("date_labels"),
+                            "标签格式 Date labels",
+                            value = "%Y-%m-%d"
+                          )
+            )
+          ),
 
-        shiny::selectizeInput(
-          ns("flow_sites"),
-          "流量站点 Flow sites",
-          choices = NULL,
-          multiple = TRUE
-        ),
+          shiny::fluidRow(
+            shiny::column(6,
+                          shiny::numericInput(
+                            ns("base_size"),
+                            "字号 Base size",
+                            value = 13, min = 8, max = 28, step = 1
+                          )
+            ),
+            shiny::column(6,
+                          shiny::numericInput(
+                            ns("rel_size"),
+                            "相对字号 Rel size",
+                            value = 1.05, min = 0.5, max = 3, step = 0.05
+                          )
+            )
+          ),
 
-        shiny::selectizeInput(
-          ns("wq_sites"),
-          "水质站点 WQ sites",
-          choices = NULL,
-          multiple = TRUE
-        ),
+          shiny::checkboxInput(
+            ns("show_wq_smooth"),
+            "显示水质趋势线 Show WQ smooth",
+            value = TRUE
+          ),
 
-        shiny::checkboxInput(
-          ns("use_topology_match"),
-          "同站点联动时使用 Topology 映射 Use Topology mapping for linked mode",
-          value = TRUE
-        ),
+          shiny::checkboxInput(
+            ns("show_imputed_points"),
+            "显示流量插补点 Show imputed flow points",
+            value = TRUE
+          ),
 
-        shiny::dateRangeInput(
-          ns("date_range"),
-          "时间范围 Date range",
-          start = Sys.Date() - 30,
-          end = Sys.Date(),
-          format = "yyyy-mm-dd",
-          language = "zh-CN"
-        ),
+          shiny::checkboxInput(
+            ns("add_standard_lines"),
+            "显示水质标准线 Show WQ standard lines",
+            value = FALSE
+          ),
 
-        shiny::textInput(
-          ns("date_breaks"),
-          "时间刻度间隔 Date breaks",
-          value = "1 month"
-        ),
+          shiny::tags$hr(style = "margin: 10px 0;"),
 
-        shiny::textInput(
-          ns("date_labels"),
-          "时间标签格式 Date labels",
-          value = "%Y-%m-%d"
-        ),
+          shiny::selectInput(
+            ns("download_format"),
+            "下载格式 Download format",
+            choices  = c("PNG" = "png", "JPG" = "jpg", "PDF" = "pdf"),
+            selected = "png"
+          ),
 
-        shiny::numericInput(
-          ns("base_size"),
-          "基础字号 Base font size",
-          value = 13,
-          min = 8,
-          max = 28,
-          step = 1
-        ),
-
-        shiny::numericInput(
-          ns("rel_size"),
-          "相对字号 Relative size",
-          value = 1.05,
-          min = 0.5,
-          max = 3,
-          step = 0.05
-        ),
-
-        shiny::checkboxInput(
-          ns("show_wq_smooth"),
-          "显示水质趋势线 Show WQ smooth",
-          value = TRUE
-        ),
-
-        shiny::checkboxInput(
-          ns("show_imputed_points"),
-          "显示流量插补点 Show imputed flow points",
-          value = TRUE
-        ),
-
-        shiny::checkboxInput(
-          ns("add_standard_lines"),
-          "显示水质标准线 Show WQ standard lines",
-          value = FALSE
-        ),
-
-        shiny::tags$hr(),
-
-        shiny::selectInput(
-          ns("download_format"),
-          "下载格式 Download format",
-          choices = c("PNG" = "png", "JPG" = "jpg", "PDF" = "pdf"),
-          selected = "png"
-        ),
-
-        shiny::downloadButton(
-          ns("download_plot"),
-          "下载图片 Download plot",
-          class = "btn-info btn-block"
+          shiny::downloadButton(
+            ns("download_plot"),
+            "下载图片 Download plot",
+            class = "btn-info btn-block"
+          )
         )
       ),
 
+      # ════════════════════════════════════════════════════
+      # 右侧图形展示面板
+      # ════════════════════════════════════════════════════
       shinydashboard::box(
-        width = 8,
-        status = "info",
+        width       = 8,
+        status      = "info",
         solidHeader = TRUE,
-        title = shiny::tagList(shiny::icon("chart-area"), " 图形展示 Plot Display"),
+        title       = shiny::tagList(
+          shiny::icon("chart-area"), " 图形展示 Plot Display"
+        ),
 
         shiny::verbatimTextOutput(ns("viz_log")),
-
         shiny::plotOutput(ns("plot_main"), height = "1000px")
       )
     )
   )
 }
+
 
 
 mod_viz_server <- function(id, rv) {
