@@ -6280,7 +6280,7 @@
       "Source": "GitHub",
       "Title": "Track Units as you Manipulate Data",
       "Description": "Attaches units to data.frames, vectors, etc. and maintains the correct units when you add, multiply, exponentiate, etc. those values.",
-      "URL": "https://github.com/appling/unitted",
+      "URL": "https://github.com/panghudebaba/unitted",
       "Date": "2017-07-21",
       "Author": "Alison Appling",
       "Maintainer": "Alison Appling <alison.appling@gmail.com>",
@@ -6302,10 +6302,10 @@
       "NeedsCompilation": "no",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
-      "RemoteRepo": "unitted",
       "RemoteUsername": "panghudebaba",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "dd98c137f6274dfe51cb487d96b3f6ea022a75e0"
+      "RemoteRepo": "unitted",
+      "RemoteRef": "main",
+      "RemoteSha": "ffe8ae57c35640350a9bce7e282f6380987e0b20"
     },
     "urca": {
       "Package": "urca",

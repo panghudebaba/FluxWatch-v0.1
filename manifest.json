@@ -5510,7 +5510,7 @@
         "Package": "unitted",
         "Title": "Track Units as you Manipulate Data",
         "Description": "Attaches units to data.frames, vectors, etc. and maintains the\n    correct units when you add, multiply, exponentiate, etc. those values.",
-        "URL": "https://github.com/appling/unitted",
+        "URL": "https://github.com/panghudebaba/unitted",
         "Version": "0.2.9",
         "Date": "2017-07-21",
         "Author": "Alison Appling",
@@ -5522,18 +5522,19 @@
         "Collate": "'01-parse.R' '02-unitbundle.R' '03-unitted.R' 'access.R'\n'arithmetic.R' 'assign.R' 'combine.R' 'convert.R' 'display.R'\n'dplyr.R' 'dplyr_join.R' 'inspect.R' 'package-unitted.R'\n'tibble.R' 'write.R' 'zzz.R'",
         "RoxygenNote": "7.3.3",
         "NeedsCompilation": "no",
-        "Packaged": "2026-03-19 01:02:49 UTC; PC",
+        "Packaged": "2026-02-04 05:23:27 UTC; PC",
+        "Built": "R 4.4.1; ; 2026-03-19 01:21:55 UTC; windows",
         "RemoteType": "github",
         "RemoteHost": "api.github.com",
-        "RemoteRepo": "unitted",
         "RemoteUsername": "panghudebaba",
-        "RemoteRef": "HEAD",
-        "RemoteSha": "dd98c137f6274dfe51cb487d96b3f6ea022a75e0",
+        "RemoteRepo": "unitted",
+        "RemoteRef": "main",
+        "RemoteSha": "ffe8ae57c35640350a9bce7e282f6380987e0b20",
+        "GithubHost": "api.github.com",
         "GithubRepo": "unitted",
         "GithubUsername": "panghudebaba",
-        "GithubRef": "HEAD",
-        "GithubSHA1": "dd98c137f6274dfe51cb487d96b3f6ea022a75e0",
-        "Built": "R 4.4.1; ; 2026-03-19 01:02:50 UTC; windows"
+        "GithubRef": "main",
+        "GithubSHA1": "ffe8ae57c35640350a9bce7e282f6380987e0b20"
       }
     },
     "urca": {
@@ -6050,7 +6051,7 @@
       "checksum": "60e2e2ef9e45b48d27962992a0775d13"
     },
     ".Rprofile": {
-      "checksum": "0e0b3eaffef39370fa953ecf0413050b"
+      "checksum": "a9bc00e628f1b6ec7425170ba2d788e3"
     },
     "app.R": {
       "checksum": "2f841fcefd82b93e40153ec3832cbc07"
@@ -6164,7 +6165,7 @@
       "checksum": "0ed6319ca5a0c0860471a0beffb3bf2c"
     },
     "renv.lock": {
-      "checksum": "eef3ee974af6706428e068b8242e3dcd"
+      "checksum": "d617894dae23c0e14a1f567461e344a8"
     },
     "server.R": {
       "checksum": "138699d936fd18fba89cbe1d86e712e5"
