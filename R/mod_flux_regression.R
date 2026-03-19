@@ -152,8 +152,6 @@ fw_regression_run_calc <- function(input, step1_qf_wq, key = "regression") {
     fw_run_flux_with_config(
       method     = "regression",
       date_range = input[[paste0("daterange_", key)]],
-      param1     = input[[paste0("param1_", key)]],
-      param2     = input[[paste0("param2_", key)]],
       step1_data = s1,
       regression_cfg = list(
         qf_sheet     = input[[paste0("qf_sheet_", key)]],
