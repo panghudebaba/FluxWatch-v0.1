@@ -18,8 +18,8 @@
 # # shinyApp(ui = ui, server = server)
 #
 #
-# # shinyApp(ui,server)
-# shiny::runApp("E:/shinyapp/FluxWatch", launch.browser = TRUE)
+# shinyApp(ui,server)
+shiny::runApp("E:/shinyapp/FluxWatch", launch.browser = TRUE)
 # #
 #
 #

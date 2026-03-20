@@ -281,6 +281,17 @@ mod_flux_server <- function(id, rv) {
         if (identical(key, "composite")) {
           return(fw_composite_render_principle(input, key))
         }
+        # ★ 新增：回归法使用与 composite 相同的原理文本，通过 renderUI + withMathJax 保证公式渲染
+        if (identical(key, "regression")) {
+          return(shiny::withMathJax(
+            shiny::tags$div(
+              style = "font-size:12px; line-height:1.6; padding:4px; color:#444;
+                 max-height:560px; overflow-y:auto;",
+              shiny::HTML(fw_regression_principle_text(active_sub = "abs_linear"))
+            )
+          ))
+        }
+        # 其余方法（weighted / interp / ratio）使用通用原理文本
         shiny::withMathJax(
           shiny::tags$div(
             style = "font-size:14px; line-height:1.8;",

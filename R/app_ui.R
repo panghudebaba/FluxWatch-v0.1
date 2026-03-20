@@ -110,7 +110,8 @@ app_ui <- function() {
 
       shiny::tags$head(
         shiny::tags$style(shiny::HTML("
-      /* ===== 关键修复：Header Logo 区域 ===== */
+
+      /* ===== Header & Layout 修复 ===== */
       .main-header .logo {
         height: 50px !important;
         line-height: 50px !important;
@@ -132,15 +133,22 @@ app_ui <- function() {
         display: inline-block !important;
       }
 
-      .content-wrapper { background-color: #f4f6f9; }
+      /* ===== 主内容区背景 ===== */
+      .content-wrapper,
+      .tab-content,
+      .tab-pane {
+        background-color: #ffffff !important;
+      }
+
       .box-header .box-title { font-weight: 600; }
 
+      /* ===== brand-hero：白色背景  ===== */
       .brand-hero {
         text-align: center;
-        padding: 40px 20px;
-        background: linear-gradient(135deg, #1a3a5c 0%, #2980b9 100%);
+        padding: 20px 20px;
+        background: #ffffff;
         border-radius: 8px;
-        color: #fff;
+        color: #333;
         margin-bottom: 20px;
       }
       .brand-hero .brand-logo {
@@ -154,20 +162,29 @@ app_ui <- function() {
         font-weight: 700;
         letter-spacing: 12px;
         margin-bottom: 4px;
+        color: #1a3a5c;
       }
       .brand-hero .brand-en {
         font-size: 28px;
         font-weight: 300;
         letter-spacing: 4px;
-        opacity: 0.85;
+        color: #2980b9;
+        opacity: 1;
       }
       .brand-hero .brand-tagline {
         font-size: 14px;
         margin-top: 16px;
-        opacity: 0.8;
+        color: #666;
         line-height: 1.6;
       }
 
+      /* ===== Logo 图片区域 ===== */
+      .brand-hero-col {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+
+      /* ===== 功能步骤卡片 ===== */
       .workflow-step {
         padding: 12px 16px;
         margin-bottom: 8px;
@@ -177,7 +194,8 @@ app_ui <- function() {
       }
       .workflow-step .step-num {
         display: inline-block;
-        width: 28px; height: 28px;
+        width: 28px;
+        height: 28px;
         line-height: 28px;
         text-align: center;
         border-radius: 50%;
@@ -187,12 +205,15 @@ app_ui <- function() {
         margin-right: 10px;
       }
 
+      /* ===== 双语文本块 ===== */
       .bilingual-block { margin-bottom: 18px; line-height: 1.8; }
       .bilingual-block .zh { font-size: 14px; color: #333; }
       .bilingual-block .en { font-size: 13px; color: #666; font-style: italic; }
 
+      /* ===== 免责声明 ===== */
       .disclaimer-text { color: #888; font-size: 13px; line-height: 1.8; }
 
+      /* ===== 侧边栏菜单 ===== */
       .sidebar-menu > li > a {
         padding: 14px 18px !important;
         line-height: 1.6 !important;
@@ -221,4 +242,5 @@ app_ui <- function() {
       )
     )
   )
+
 }

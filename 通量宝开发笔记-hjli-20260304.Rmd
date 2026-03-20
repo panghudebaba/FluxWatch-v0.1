@@ -26,9 +26,9 @@ renv::install("readxl", rebuild = FALSE)
 renv::install("patchwork", rebuild = FALSE)
 renv::install("plotly", rebuild = FALSE)
 renv::install("readxl", rebuild = FALSE)
-renv::install("RiverLoad", rebuild = FALSE)
+# renv::install("RiverLoad", rebuild = FALSE)
 
-
+remotes::install_github("VeronicaNava/RiverLoad")
 # 将所有包从全局库复制到 renv（不推荐，并不需要所有包）
 # renv::snapshot(type = "all")
 
@@ -81,10 +81,111 @@ renv::restore()
 
 # 2 Shiny 项目结构
 
+FluxWatch/R/
+│
+│  ════════════════════════════════════════════════════════
+│  L0 — App Entry (3 文件, 3 函数)
+│  ════════════════════════════════════════════════════════
+│
+├── run_app.R .......................... 1   shiny::runApp 封装
+├── app_ui.R ........................... 1   shinydashboard 全局布局
+├── app_server.R ....................... 1   模块路由 + rv 初始化
+│
+│  ════════════════════════════════════════════════════════
+│  L1 — Primary Modules (8 文件)
+│  ════════════════════════════════════════════════════════
+│
+├── mod_welcome.R ...................... 2   欢迎页 (ui + server)
+├── mod_disclaimer.R ................... 2   免责声明
+├── mod_ingest.R ....................... 2   数据导入 (上传 + 校验 + 预览)
+├── mod_flux.R ......................... ~18 通量计算主控 (5方法页 + 对比页)
+├── mod_design.R ....................... ~8  采样优化设计
+├── mod_viz.R .......................... ~6  数据可视化
+├── mod_report.R ....................... ~12 报告生成 + 下载
+├── mod_about.R ........................ 2   关于页
+│
+│  ════════════════════════════════════════════════════════
+│  L1.1 — Sub-Modules (嵌套在父模块内调用)
+│  ════════════════════════════════════════════════════════
+│
+├── mod_flux_weighted.R ................ 🆕 4   加权法子模块 (ui+server)
+├── mod_flux_interp.R .................. 🆕 4   插值法子模块
+├── mod_flux_ratio.R ................... 🆕 4   比率法子模块
+├── mod_flux_regression.R .............. 10  回归法子模块
+├── mod_flux_composite.R ............... 12  复合法子模块
+├── mod_flux_compare.R ................. 🆕 8   方法对比子模块
+├── mod_design_dt.R .................... 🆕 6   DT交互表子模块
+├── mod_design_compare.R ............... 🆕 6   设计对比结果子模块
+├── mod_viz_bindplot.R ................. 🆕 4   联动绑定图子模块
+│
+│  ════════════════════════════════════════════════════════
+│  L2 — Business Logic / fct (10 文件)
+│  ════════════════════════════════════════════════════════
+│
+├── fct_ingest.R ....................... 21  解析/校验/清洗
+├── fct_flux.R ......................... ~10 通量主调度 + 汇总
+├── fct_flux_weighted.R ................ 1   fw_calc_flux_weighted
+├── fct_flux_interp.R .................. 2   fw_calc_flux_interp
+├── fct_flux_ratio.R ................... 4   fw_calc_flux_ratio
+├── fct_flux_regression.R .............. 7   fw_calc_flux_regression + 拟合
+├── fct_flux_composite.R ............... 6   fw_calc_flux_beale + 分层
+├── fct_design.R ....................... ~12 采样方案 + 对比计算
+├── fct_viz.R .......................... ~12 高层绘图逻辑 (仅独有函数) ★清理
+├── fct_report.R ....................... 🆕 6   报告数据聚合 + 格式化
+│
+│  ════════════════════════════════════════════════════════
+│  L3 — Utilities (9 文件)
+│  ════════════════════════════════════════════════════════
+│
+├── utils_helpers.R .................... 🆕 8   全局辅助 (%||%, fw_as_date, fw_as_num,
+│                                               fw_trim_na, fw_pick_first_text, agg_mean)
+├── utils_flux.R ....................... ~12 通量专用工具 (去重后)
+├── utils_flux_regression.R ............ 3   fw_prepare_regression_input
+├── utils_flux_composite.R ............. 9   fw_composite_* 辅助
+├── utils_design.R ..................... 13  采样设计工具 + JS 生成器
+├── utils_viz.R ........................ 16  可视化工具 (唯一定义) ★保留
+├── utils_load_calc.R .................. 9   负荷计算 (grab/composite sampling)
+├── utils_report.R ..................... ~4  报告模板 + 格式化辅助
+├── utils_validation.R ................. 🆕 6   输入校验 + 错误消息标准化
+│
+│  ════════════════════════════════════════════════════════
+│  Tests (配套测试)
+│  ════════════════════════════════════════════════════════
+│
+tests/testthat/
+├── test-fct_ingest.R .................. 🆕
+├── test-fct_flux_weighted.R ........... 🆕
+├── test-fct_flux_interp.R ............. 🆕
+├── test-fct_flux_ratio.R .............. 🆕
+├── test-fct_flux_regression.R ......... 🆕
+├── test-fct_flux_composite.R .......... 🆕
+├── test-fct_design.R .................. 🆕
+├── test-utils_helpers.R ............... 🆕
+├── test-utils_flux.R .................. 🆕
+└── test-utils_validation.R ............ 🆕
+│
+│  ════════════════════════════════════════════════════════
+│  Config / Data (补充)
+│  ════════════════════════════════════════════════════════
+│
+├── inst/
+│   ├── app/www/ ........................ CSS / JS / images
+│   ├── extdata/ ........................ 🆕 示例数据 (demo.xlsx)
+│   └── rmd/ ............................ 🆕 报告 Rmd 模板
+│
+└── data/
+    └── method_registry.rda ............. 🆕 方法元数据注册表
+
+
 ```{r}
 
 files <- list.files(path = "E:/shinyapp/FluxWatch/R")
 files
+
+
+
+
+
 
 # /R
 # ├── utils_flux.R                  # 共享工具函数
@@ -167,7 +268,7 @@ gert::git_status(repo = git_dir)
 gert::git_add(".", repo = git_dir)
 
 # 提交更改（生成一个版本）
-gert::git_commit("版本14", repo = git_dir)
+gert::git_commit("版本15", repo = git_dir)
 
 # 推送更改到远程仓库
 gert::git_push()

@@ -4337,6 +4337,43 @@
         "RemoteSha": "2.0.0"
       }
     },
+    "remotes": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "remotes",
+        "Title": "R Package Installation from Remote Repositories, Including\n'GitHub'",
+        "Version": "2.5.0",
+        "Authors@R": "c(\n    person(\"Gábor\", \"Csárdi\", , \"csardi.gabor@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Winston\", \"Chang\", role = \"aut\"),\n    person(\"Martin\", \"Morgan\", role = \"aut\"),\n    person(\"Dan\", \"Tenenbaum\", role = \"aut\"),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"Ascent Digital Services\", role = \"cph\")\n  )",
+        "Description": "Download and install R packages stored in 'GitHub', 'GitLab',\n    'Bitbucket', 'Bioconductor', or plain 'subversion' or 'git'\n    repositories.  This package provides the 'install_*' functions in\n    'devtools'. Indeed most of the code was copied over from 'devtools'.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://remotes.r-lib.org, https://github.com/r-lib/remotes#readme",
+        "BugReports": "https://github.com/r-lib/remotes/issues",
+        "Depends": "R (>= 3.0.0)",
+        "Imports": "methods, stats, tools, utils",
+        "Suggests": "brew, callr, codetools, covr, curl, git2r (>= 0.23.0), knitr,\nmockery, pingr, pkgbuild (>= 1.0.1), rmarkdown, rprojroot,\ntestthat (>= 3.0.0), webfakes, withr",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.3",
+        "SystemRequirements": "Subversion for install_svn, git for install_git",
+        "NeedsCompilation": "no",
+        "Packaged": "2024-03-17 12:41:55 UTC; gaborcsardi",
+        "Author": "Gábor Csárdi [aut, cre],\n  Jim Hester [aut],\n  Hadley Wickham [aut],\n  Winston Chang [aut],\n  Martin Morgan [aut],\n  Dan Tenenbaum [aut],\n  Posit Software, PBC [cph, fnd],\n  Ascent Digital Services [cph]",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2024-03-17 13:20:02 UTC",
+        "Built": "R 4.4.0; ; 2025-12-02 12:33:23 UTC; windows",
+        "RemoteType": "standard",
+        "RemoteRef": "remotes",
+        "RemotePkgRef": "remotes",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "2.5.0"
+      }
+    },
     "renv": {
       "Source": "CRAN",
       "Repository": "https://packagemanager.posit.co/cran/latest",
@@ -4800,6 +4837,40 @@
         "RemoteReposName": "CRAN",
         "RemotePkgPlatform": "x86_64-w64-mingw32",
         "RemoteSha": "0.7.3"
+      }
+    },
+    "shinyjs": {
+      "Source": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
+      "description": {
+        "Package": "shinyjs",
+        "Title": "Easily Improve the User Experience of Your Shiny Apps in Seconds",
+        "Version": "2.1.1",
+        "Authors@R": "person(\"Dean\", \"Attali\", \n    email = \"daattali@gmail.com\",\n    role = c(\"aut\", \"cre\"),\n    comment= c(ORCID=\"0000-0002-5645-3493\"))",
+        "Description": "Perform common useful JavaScript operations in Shiny apps that will\n    greatly improve your apps without having to know any JavaScript. Examples\n    include: hiding an element, disabling an input, resetting an input back to\n    its original value, delaying code execution by a few seconds, and many more\n    useful functions for both the end user and the developer. 'shinyjs' can also\n    be used to easily call your own custom JavaScript functions from R.",
+        "URL": "https://deanattali.com/shinyjs/",
+        "BugReports": "https://github.com/daattali/shinyjs/issues",
+        "Depends": "R (>= 3.1.0)",
+        "Imports": "digest (>= 0.6.8), jsonlite, shiny (>= 1.0.0)",
+        "Suggests": "htmltools (>= 0.2.9), knitr (>= 1.7), rmarkdown, shinyAce,\nshinydisconnect, testthat (>= 0.9.1)",
+        "License": "MIT + file LICENSE",
+        "VignetteBuilder": "knitr",
+        "RoxygenNote": "7.3.3",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "no",
+        "Packaged": "2026-01-14 23:37:28 UTC; Dean",
+        "Author": "Dean Attali [aut, cre] (ORCID: <https://orcid.org/0000-0002-5645-3493>)",
+        "Maintainer": "Dean Attali <daattali@gmail.com>",
+        "Repository": "RSPM",
+        "Date/Publication": "2026-01-15 06:10:08 UTC",
+        "Built": "R 4.4.0; ; 2026-01-16 04:36:50 UTC; windows",
+        "RemoteType": "standard",
+        "RemoteRef": "shinyjs",
+        "RemotePkgRef": "shinyjs",
+        "RemoteRepos": "https://packagemanager.posit.co/cran/latest",
+        "RemoteReposName": "CRAN",
+        "RemotePkgPlatform": "x86_64-w64-mingw32",
+        "RemoteSha": "2.1.1"
       }
     },
     "smwrBase": {
@@ -6051,19 +6122,19 @@
       "checksum": "60e2e2ef9e45b48d27962992a0775d13"
     },
     ".Rprofile": {
-      "checksum": "3284fb244660094637b2ecafdaf93d18"
+      "checksum": "95ee7d3a55c970d6098f64a6efac7283"
     },
     "app.R": {
-      "checksum": "2f841fcefd82b93e40153ec3832cbc07"
+      "checksum": "215a0d26f35880d01f7d71521f5a025a"
     },
     "csv/Dailyflow_WE38_1983_2012.xlsx": {
       "checksum": "4243779bffe4b978306496e29449a73f"
     },
-    "csv/EGRET_loadflex_通量计算标准数据模板.xlsx": {
-      "checksum": "cbfba0db971e5ddc521d8462f5b73f00"
-    },
     "csv/EGRET_loadflex_通量计算标准数据模板_HZS.xlsx": {
-      "checksum": "9907719404b3078232170eca2a9eb0f0"
+      "checksum": "4ad1409e9ee4dd1c14654028ed0883c7"
+    },
+    "csv/EGRET_loadflex_通量计算标准数据模板_WE38.xlsx": {
+      "checksum": "cbfba0db971e5ddc521d8462f5b73f00"
     },
     "csv/Water_quality_WE_38_20150504.csv": {
       "checksum": "6114c0d29ebf4bffbc37993919ba0a52"
@@ -6077,6 +6148,9 @@
     "data/Water_quality_WE_38.rds": {
       "checksum": "16339b93a3c117291520b583ebe11fa4"
     },
+    "function_inventory.csv": {
+      "checksum": "1b59bf01934bd4144d191ed534afa96e"
+    },
     "global.R": {
       "checksum": "773241328330ce6c612c450f94ef414e"
     },
@@ -6084,7 +6158,10 @@
       "checksum": "5387fd7be2adbadbd66646065cc0dd72"
     },
     "R/app_ui.R": {
-      "checksum": "6b21e4ad0c1708836e8ca87beece10fc"
+      "checksum": "82edae20828226965fe70b5e8d633027"
+    },
+    "R/fct_design.R": {
+      "checksum": "a52dcca2b7cdcd43ec7ccf26662d4df0"
     },
     "R/fct_flux.R": {
       "checksum": "6b7ef7bc757a5a6655831a4f39936f10"
@@ -6107,6 +6184,9 @@
     "R/fct_ingest.R": {
       "checksum": "e0b92a8066e5cc4542d555b763a6d2ca"
     },
+    "R/fct_report.R": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
     "R/fct_viz.R": {
       "checksum": "0fa302a6163c141fa57cad00b64831f8"
     },
@@ -6114,19 +6194,31 @@
       "checksum": "e4a38e498ab77ff7c7ae27f09089640b"
     },
     "R/mod_design.R": {
-      "checksum": "d6ede526f7f4e20b1a9e3accddd1bf22"
+      "checksum": "d6e76c41ea167568699e12a6f01c63dc"
     },
     "R/mod_disclaimer.R": {
       "checksum": "f3e95c267d841021a7fd5ecec73bb84f"
     },
     "R/mod_flux.R": {
-      "checksum": "4b701473c5c340222a023166dc00e8d3"
+      "checksum": "ae201939bd919eaf4e5fd82cdfa77a5a"
+    },
+    "R/mod_flux_compare.R": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
     },
     "R/mod_flux_composite.R": {
-      "checksum": "bd5bf4c75872f0e5e1909e562ad19753"
+      "checksum": "579cee009c0b8ea73afc617bcc62230a"
+    },
+    "R/mod_flux_interp.R": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    "R/mod_flux_ratio.R": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
     },
     "R/mod_flux_regression.R": {
-      "checksum": "69dfcdcff8a767426c000e3a4eb540f0"
+      "checksum": "7f55b0c501c45ca1599629a2d4b41c22"
+    },
+    "R/mod_flux_weighted.R": {
+      "checksum": "d41d8cd98f00b204e9800998ecf8427e"
     },
     "R/mod_ingest.R": {
       "checksum": "beeb0e4b7fbfea3c091f658f99ee3c8b"
@@ -6138,13 +6230,13 @@
       "checksum": "78b1e4ab96f07f08e3ef2d5ca3e98d63"
     },
     "R/mod_welcome.R": {
-      "checksum": "d3d9cb94a1c89291a0a94a8cc62d012b"
+      "checksum": "d9326614fd6d5c68ce94713e9b19b198"
     },
-    "R/utils_data.R": {
-      "checksum": "81051bcc2cf1bedf378224b0a93e2877"
+    "R/run_app.R": {
+      "checksum": "a3cc99535e52a3ab9ef550233180368d"
     },
     "R/utils_design.R": {
-      "checksum": "399592aba406af29645932950d4a8139"
+      "checksum": "a8bd3870f8a4cc392807c6243efaeecf"
     },
     "R/utils_flux.R": {
       "checksum": "5cb3d0ff3941bf378ab20e07f4485fe8"
@@ -6165,22 +6257,13 @@
       "checksum": "0ed6319ca5a0c0860471a0beffb3bf2c"
     },
     "renv.lock": {
-      "checksum": "d617894dae23c0e14a1f567461e344a8"
-    },
-    "server.R": {
-      "checksum": "138699d936fd18fba89cbe1d86e712e5"
-    },
-    "ui.R": {
-      "checksum": "6211bef670aaf8a3630ea0473190b1ce"
-    },
-    "www/custom.css": {
-      "checksum": "58c2a32ff6be4c94a4c3e46b256a4b43"
+      "checksum": "8d832b7235c0db341d2d4b540b45d445"
     },
     "www/logo.png": {
-      "checksum": "d9d38bd01149f58b3c4da53dc8f8decb"
+      "checksum": "449d607326ce5ab9784026845a7ac926"
     },
     "通量宝开发笔记-hjli-20260304.Rmd": {
-      "checksum": "b6d027dcef8c9e5531dc4cdac6f0f0eb"
+      "checksum": "d0dc90194548bdf9ef1968146489ffeb"
     }
   },
   "users": null
