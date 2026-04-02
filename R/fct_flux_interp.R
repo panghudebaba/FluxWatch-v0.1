@@ -27,7 +27,7 @@ fw_calc_interp <- function(d, conv_factor = 86.4) {
   if (!("WYBM"    %in% names(d))) d$WYBM    <- NA_character_
   d <- d[!is.na(d$date), , drop = FALSE]
   d <- d[order(d$date), , drop = FALSE]
-  if (nrow(d) == 0) stop("无可用日数据。")
+  if (nrow(d) == 0) stop("\u65e0\u53ef\u7528\u65e5\u6570\u636e\u3002")
 
   # 流量加权浓度作兜底
   idx_obs <- which(is.finite(d$C_obs))

@@ -94,9 +94,48 @@ mod_ingest_ui <- function(id) {
 }
 
 
+# =========================================================
+# helper: 数值统一保留三位小数
+# =========================================================
+fw_round_numeric_df <- function(df, digits = 3) {
+  if (is.null(df) || !is.data.frame(df)) return(df)
+
+  num_cols <- vapply(df, is.numeric, logical(1))
+  if (any(num_cols)) {
+    df[num_cols] <- lapply(df[num_cols], function(x) round(x, digits))
+  }
+  df
+}
+
+fw_round_numeric_object <- function(x, digits = 3) {
+  if (is.null(x)) {
+    return(NULL)
+  }
+
+  if (is.data.frame(x)) {
+    return(fw_round_numeric_df(x, digits = digits))
+  }
+
+  if (is.matrix(x) && is.numeric(x)) {
+    return(round(x, digits))
+  }
+
+  if (is.list(x)) {
+    return(lapply(x, fw_round_numeric_object, digits = digits))
+  }
+
+  if (is.numeric(x)) {
+    return(round(x, digits))
+  }
+
+  x
+}
+
 
 mod_ingest_server <- function(id, rv) {
   shiny::moduleServer(id, function(input, output, session) {
+
+    keep_digits <- 3L
 
     observeEvent(input$load, {
       shiny::req(input$file)
@@ -106,6 +145,11 @@ mod_ingest_server <- function(id, rv) {
           path = input$file$datapath,
           auto_impute_flow = isTRUE(input$auto_impute_flow)
         )
+
+        # 读取到的数据、插补后的数据统一保留 3 位小数
+        res$clean_list <- fw_round_numeric_object(res$clean_list, digits = keep_digits)
+        res$raw_list   <- fw_round_numeric_object(res$raw_list,   digits = keep_digits)
+        res$flow_info  <- fw_round_numeric_object(res$flow_info,  digits = keep_digits)
 
         rv$ingest_log <- res$log
         rv$clean_list <- res$clean_list
@@ -194,6 +238,16 @@ mod_ingest_server <- function(id, rv) {
         )
       )
 
+      # 预览表格中的数值列固定显示 3 位小数
+      numeric_cols <- names(dat)[vapply(dat, is.numeric, logical(1))]
+      if (length(numeric_cols) > 0) {
+        dt <- DT::formatRound(
+          dt,
+          columns = numeric_cols,
+          digits = keep_digits
+        )
+      }
+
       if (identical(input$sheet, "Flow") && "is_imputed" %in% names(dat)) {
         dt <- DT::formatStyle(
           dt,
@@ -211,4 +265,3 @@ mod_ingest_server <- function(id, rv) {
     })
   })
 }
-

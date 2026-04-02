@@ -268,7 +268,7 @@ gert::git_status(repo = git_dir)
 gert::git_add(".", repo = git_dir)
 
 # 提交更改（生成一个版本）
-gert::git_commit("版本15", repo = git_dir)
+gert::git_commit("版本16", repo = git_dir)
 
 # 推送更改到远程仓库
 gert::git_push()
@@ -991,3 +991,91 @@ result$piecewise
 ```
 
 
+# 7 程序封装
+
+```{r }
+src   <- "E:/shinyapp/test/FluxWatch"
+stage <- "E:/shinyapp/test/FluxWatch_pack_input"
+
+if (dir.exists(stage)) unlink(stage, recursive = TRUE, force = TRUE)
+dir.create(stage, recursive = TRUE, showWarnings = FALSE)
+
+copy_if_exists <- function(x) {
+  p <- file.path(src, x)
+  if (file.exists(p) && !dir.exists(p)) {
+    file.copy(p, file.path(stage, basename(x)), overwrite = TRUE)
+  } else if (dir.exists(p)) {
+    file.copy(p, stage, recursive = TRUE, overwrite = TRUE)
+  }
+}
+
+for (x in c("app.R", "global.R", "R", "www", "data", "csv", "manifest.json")) {
+  copy_if_exists(x)
+}
+
+setwd(stage)
+
+getwd()
+file.exists("app.R")
+file.exists(".Rprofile")
+file.exists("renv.lock")
+dir.exists("renv")
+list.files(".", all.files = TRUE)
+
+
+try(Sys.setlocale(category = "LC_ALL", locale = ""), silent = TRUE)
+
+executablePackeR::pack(
+  app_name = "FluxWatch_clean3",
+  electron_settings = list(
+    c("product_name_template", "FluxWatch"),
+    c("app_description_template", "FluxWatch desktop app"),
+    c("author_name_template", "Joshua Brown"),
+    c("author_email_template", "mrstammy4144@outlook.com"),
+    c("repository_url_template", "https://example.com")
+  ),
+  option = list(is_dev = TRUE)
+)
+
+
+try(Sys.setlocale(category = "LC_ALL", locale = ""), silent = TRUE)
+
+executablePackeR::pack(
+  app_name = "FluxWatch_clean3",
+  electron_settings = list(
+    c("product_name_template", "FluxWatch"),
+    c("app_description_template", "FluxWatch desktop app"),
+    c("author_name_template", "Joshua Brown"),
+    c("author_email_template", "mrstammy4144@outlook.com"),
+    c("repository_url_template", "https://example.com")
+  ),
+  option = list(is_dev = TRUE)
+)
+
+# 将目录选择到需要打包的目录下
+
+# cd /d E:\test\FluxWatch_clean3
+# 
+# taskkill /f /im FluxWatch.exe
+# taskkill /f /im electron.exe
+# taskkill /f /im R.exe
+# taskkill /f /im Rterm.exe
+# taskkill /f /im node.exe
+# 
+# tasklist | findstr /i "FluxWatch electron R.exe Rterm.exe node.exe"
+# 
+# rmdir /s /q E:\test\FluxWatch_clean3\out
+# 
+# npm run package
+# npm run make
+
+
+
+# 有由于网络问题，需要提前下载electron，提前安装node.js,innoextract
+# https://repo.huaweicloud.com/electron/26.2.1/
+# https://github.com/dscharrer/innoextract/releases
+# https://nodejs.org/en/download
+
+
+
+```

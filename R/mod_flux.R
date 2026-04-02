@@ -1,6 +1,7 @@
 # =====================================================================
 # mod_flux.R
 # 通量计算模块 —— 主模块 UI + Server（集成所有方法）
+# 加权平均法专属逻辑由 mod_flux_weighted.R 提供
 # 回归法专属逻辑由 mod_flux_regression.R 提供
 # 复合法专属逻辑由 mod_flux_composite.R 提供
 # =====================================================================
@@ -12,12 +13,17 @@ if (!exists("%||%", mode = "function")) {
 # ----------------------------- UI -----------------------------
 
 mod_flux_method_page_ui <- function(ns, key) {
-  # 回归法 / 复合法使用专属参数块，其他方法使用通用数据源选择
-  left_extra <- if (identical(key, "regression")) {
+  # weighted / interp / regression / composite 使用专属参数块，ratio 使用通用数据源选择
+  left_extra <- if (identical(key, "weighted")) {
+    fw_weighted_left_extra_ui(ns, key)
+  } else if (identical(key, "interp")) {
+    fw_interp_left_extra_ui(ns, key)
+  } else if (identical(key, "regression")) {
     fw_regression_left_extra_ui(ns, key)
   } else if (identical(key, "composite")) {
     fw_composite_left_extra_ui(ns, key)
   } else {
+    # ratio 或其他简单方法
     shiny::tagList(
       shiny::selectInput(
         ns(paste0("datasrc_", key)),
@@ -44,7 +50,6 @@ mod_flux_method_page_ui <- function(ns, key) {
           title = shiny::tagList(shiny::icon("sliders-h"), " \u53c2\u6570\u8bbe\u7f6e"),
           left_extra,
           shiny::dateRangeInput(ns(paste0("daterange_", key)), "\u6570\u636e\u65f6\u95f4\u9009\u62e9", start = NULL, end = NULL),
-          # ← 已删除 param1 / param2 numericInput
           shiny::actionButton(
             ns(paste0("run_", key)), "\u5f00\u59cb\u8ba1\u7b97",
             icon = shiny::icon("play"), class = "btn-primary btn-block"
@@ -145,8 +150,8 @@ mod_flux_server <- function(id, rv) {
   shiny::moduleServer(id, function(input, output, session) {
 
     method_keys <- c("weighted", "interp", "ratio", "regression", "composite")
-    # 非回归、非复合方法共享 datasrc 同步逻辑
-    simple_keys <- c("weighted", "interp", "ratio")
+    # 仅 ratio 保留为简单方法；weighted / interp / regression / composite 均为专属模块
+    simple_keys <- c("ratio")
     conv_factor_fixed <- 86.4
 
     # ======== 初始化 flux_current / flux_history ========
@@ -169,7 +174,7 @@ mod_flux_server <- function(id, rv) {
       }
     }, once = TRUE)
 
-    # ======== 简单方法（weighted/interp/ratio）的数据源选择 ========
+    # ======== 简单方法（ratio）的数据源选择 ========
 
     is_flux_compatible <- function(df) {
       if (is.null(df) || !is.data.frame(df) || nrow(df) == 0) return(FALSE)
@@ -218,7 +223,7 @@ mod_flux_server <- function(id, rv) {
       ch
     })
 
-    # datasrc 同步：仅简单方法（weighted/interp/ratio）
+    # datasrc 同步：仅简单方法（ratio）
     observe({
       ch <- data_choices()
       for (k in simple_keys) {
@@ -262,13 +267,22 @@ mod_flux_server <- function(id, rv) {
       NULL
     }
 
-    # ======== 回归法：初始化专属 observers（委托 mod_flux_regression.R）========
-
+    # ======== 共享 step1_qf_wq reactive ========
+    # 所有专属方法（weighted / interp / regression / composite）共用同一个 step1 reactive
     step1_qf_wq <- fw_regression_step1_reactive(rv)
+
+    # ======== 加权平均法：初始化专属 observers（委托 mod_flux_weighted.R）========
+    fw_weighted_init_observers(input, session, step1_qf_wq)
+
+    # ======== 平均方法（插值法）：初始化专属 observers（委托 mod_flux_interp.R）========
+    fw_interp_init_observers(input, session, step1_qf_wq)
+
+    # ======== 比率法：保留为简单方法，无专属 observers ========
+
+    # ======== 回归法：初始化专属 observers（委托 mod_flux_regression.R）========
     fw_regression_init_observers(input, session, step1_qf_wq)
 
     # ======== 复合法：初始化专属 observers（委托 mod_flux_composite.R）========
-    # 复用与回归法相同的 step1_qf_wq reactive
     fw_composite_init_observers(input, session, step1_qf_wq, key = "composite")
 
     # ======== 每个方法页的通用 Server 逻辑 ========
@@ -276,12 +290,11 @@ mod_flux_server <- function(id, rv) {
     for (k in method_keys) local({
       key <- k
 
-      # ---- 方法原理（复合法委托专属函数，其余用通用文本 + withMathJax）----
+      # ---- 方法原理 ----
       output[[paste0("principle_", key)]] <- shiny::renderUI({
         if (identical(key, "composite")) {
           return(fw_composite_render_principle(input, key))
         }
-        # ★ 新增：回归法使用与 composite 相同的原理文本，通过 renderUI + withMathJax 保证公式渲染
         if (identical(key, "regression")) {
           return(shiny::withMathJax(
             shiny::tags$div(
@@ -291,7 +304,26 @@ mod_flux_server <- function(id, rv) {
             )
           ))
         }
-        # 其余方法（weighted / interp / ratio）使用通用原理文本
+        if (identical(key, "interp")) {
+          return(shiny::withMathJax(
+            shiny::tags$div(
+              style = "font-size:12px; line-height:1.6; padding:4px; color:#444;
+                 max-height:560px; overflow-y:auto;",
+              shiny::HTML(fw_interp_principle_text())
+            )
+          ))
+        }
+        # ★ 加权平均法：使用专属原理文本
+        if (identical(key, "weighted")) {
+          return(shiny::withMathJax(
+            shiny::tags$div(
+              style = "font-size:12px; line-height:1.6; padding:4px; color:#444;
+                 max-height:560px; overflow-y:auto;",
+              shiny::HTML(fw_weighted_principle_text())
+            )
+          ))
+        }
+        # 其余方法（ratio）使用通用原理文本
         shiny::withMathJax(
           shiny::tags$div(
             style = "font-size:14px; line-height:1.8;",
@@ -302,16 +334,21 @@ mod_flux_server <- function(id, rv) {
 
       # ---- 日数据获取 ----
       daily_all <- shiny::reactive({
-        # 回归法：委托专属函数
         if (identical(key, "regression")) {
           return(fw_regression_get_daily_all(input, step1_qf_wq))
         }
-        # 复合法：委托专属函数，复用已有的 step1_qf_wq
         if (identical(key, "composite")) {
           return(fw_composite_get_daily_all(input, key = key,
                                             step1_qf_wq = step1_qf_wq))
         }
-        # 其他简单方法（weighted / interp / ratio）
+        if (identical(key, "interp")) {
+          return(fw_interp_get_daily_all(input, step1_qf_wq))
+        }
+        # ★ 加权平均法：委托专属函数
+        if (identical(key, "weighted")) {
+          return(fw_weighted_get_daily_all(input, step1_qf_wq))
+        }
+        # 其他简单方法（ratio）
         src <- input[[paste0("datasrc_", key)]]
         raw <- get_source_df(src)
         if (is.null(raw)) return(NULL)
@@ -359,7 +396,7 @@ mod_flux_server <- function(id, rv) {
           # 委托复合法专属函数
           res <- fw_composite_run_calc(input, daily_station, key, conv_factor_fixed)
 
-          # 附加数据源标签（复合法从 QF/WQ/指标 组合生成）
+          # 附加数据源标签
           qf_sel <- input[[paste0("qf_sheet_", key)]] %||% ""
           wq_sel <- input[[paste0("wq_sheet_", key)]] %||% ""
           con    <- input[[paste0("constituent_", key)]] %||% ""
@@ -369,8 +406,34 @@ mod_flux_server <- function(id, rv) {
             res$params$data_source_label <- src_lab
           }
 
+        } else if (identical(key, "interp")) {
+          # 委托平均方法（插值法）专属函数
+          res <- fw_interp_run_calc(input, step1_qf_wq, key)
+
+          # 附加数据源标签
+          qf_sel <- input[[paste0("qf_sheet_", key)]] %||% ""
+          wq_sel <- input[[paste0("wq_sheet_", key)]] %||% ""
+          con    <- input[[paste0("constituent_", key)]] %||% ""
+          if (!is.null(res)) {
+            res$params$data_source       <- paste0(qf_sel, "::", wq_sel, "::", con)
+            res$params$data_source_label <- paste0("QF:", qf_sel, " / WQ:", wq_sel, " / ", con)
+          }
+
+          # ★ 加权平均法：委托专属函数
+        } else if (identical(key, "weighted")) {
+          res <- fw_weighted_run_calc(input, step1_qf_wq, key)
+
+          # 附加数据源标签
+          qf_sel <- input[[paste0("qf_sheet_", key)]] %||% ""
+          wq_sel <- input[[paste0("wq_sheet_", key)]] %||% ""
+          con    <- input[[paste0("constituent_", key)]] %||% ""
+          if (!is.null(res)) {
+            res$params$data_source       <- paste0(qf_sel, "::", wq_sel, "::", con)
+            res$params$data_source_label <- paste0("QF:", qf_sel, " / WQ:", wq_sel, " / ", con)
+          }
+
         } else {
-          # 其他简单方法（weighted / interp / ratio）
+          # 其他简单方法（ratio）
           d <- daily_station()
           if (is.null(d) || nrow(d) == 0) {
             shiny::showNotification("\u5f53\u524d\u6570\u636e\u9009\u62e9\u4e0d\u53ef\u7528\u4e8e\u901a\u91cf\u8ba1\u7b97\uff0c\u8bf7\u66f4\u6362\u6570\u636e\u6e90\u3002", type = "error")
@@ -382,7 +445,6 @@ mod_flux_server <- function(id, rv) {
               dat_daily   = d,
               method      = key,
               date_range  = input[[paste0("daterange_", key)]],
-              # ← 已删除 param1 / param2 传参
               conv_factor = conv_factor_fixed
             ),
             error = function(e) { shiny::showNotification(e$message, type = "error"); NULL }
@@ -444,8 +506,12 @@ mod_flux_server <- function(id, rv) {
         d0 <- fw_as_date(d$date); d0 <- d0[!is.na(d0)]
         dline <- if (length(d0) > 0) paste0(as.character(min(d0)), " ~ ", as.character(max(d0))) else "NA ~ NA"
 
-        # 回归法 / 复合法额外信息委托各自专属函数
-        extra <- if (identical(key, "regression")) {
+        # 各方法额外信息委托各自专属函数
+        extra <- if (identical(key, "weighted")) {
+          fw_weighted_settle_extra(res)
+        } else if (identical(key, "interp")) {
+          fw_interp_settle_extra(res)
+        } else if (identical(key, "regression")) {
           fw_regression_settle_extra(res)
         } else if (identical(key, "composite")) {
           fw_composite_settle_extra(res)
@@ -456,7 +522,6 @@ mod_flux_server <- function(id, rv) {
           "\n\u6570\u636e\u6e90: ", res$params$data_source_label %||% "auto",
           "\n\u7ad9\u70b9: ", st_txt, wy_line,
           "\n\u65f6\u95f4: ", dline,
-          # ← 已删除参数1/参数2显示行
           if (key %in% simple_keys)
             paste0("\n\u6362\u7b97\u7cfb\u6570: ", conv_factor_fixed, "\uff08\u56fa\u5b9a\uff09") else "",
           extra,
@@ -496,12 +561,16 @@ mod_flux_server <- function(id, rv) {
         fw_plot_flux_ts(res$daily, title = paste0(res$method_label, " - \u5f53\u524d\u65b9\u6848"))
       })
 
-      # ---- 诊断图（复合法使用专属诊断图，其余用通用）----
+      # ---- 诊断图（各专属方法使用专属诊断图，其余用通用）----
       output[[paste0("plot_diag_", key)]] <- shiny::renderPlot({
         res <- cur_res()
         shiny::req(res)
         if (identical(key, "composite")) {
           fw_composite_render_diag(res)
+        } else if (identical(key, "interp")) {
+          fw_interp_render_diag(res)
+        } else if (identical(key, "weighted")) {
+          fw_weighted_render_diag(res)
         } else {
           fw_plot_flux_diag(res)
         }
@@ -548,7 +617,7 @@ mod_flux_server <- function(id, rv) {
         }
       )
 
-      # ---- 下载: 诊断图（复合法使用专属诊断图）----
+      # ---- 下载: 诊断图（各专属方法使用专属诊断图）----
       output[[paste0("download_diag_", key)]] <- shiny::downloadHandler(
         filename = function() paste0("flux_", key, "_diagnostic_", Sys.Date(), ".png"),
         content = function(file) {
@@ -559,6 +628,10 @@ mod_flux_server <- function(id, rv) {
             graphics::plot.new(); graphics::text(0.5, 0.5, "No diagnostic result")
           } else if (identical(key, "composite")) {
             fw_composite_render_diag(res)
+          } else if (identical(key, "interp")) {
+            fw_interp_render_diag(res)
+          } else if (identical(key, "weighted")) {
+            fw_weighted_render_diag(res)
           } else {
             fw_plot_flux_diag(res)
           }

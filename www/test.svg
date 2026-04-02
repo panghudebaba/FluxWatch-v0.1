@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <pattern id="mesh" width="14" height="14" patternUnits="userSpaceOnUse">
+      <rect width="14" height="14" fill="#8F8F8F"/>
+      <path d="M0 0L14 14M14 0L0 14" stroke="#D9D9D9" stroke-width="1.4" opacity="0.65"/>
+    </pattern>
+
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9BE8FF"/>
+      <stop offset="1" stop-color="#59C9FF"/>
+    </linearGradient>
+
+    <linearGradient id="smallLiquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD98B"/>
+      <stop offset="1" stop-color="#FFB44D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- background -->
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+
+  <!-- shadows -->
+  <ellipse cx="462" cy="804" rx="255" ry="34" fill="#E6ECF2" opacity="0.72"/>
+  <ellipse cx="820" cy="668" rx="120" ry="24" fill="#EEF2F6" opacity="0.75"/>
+
+  <!-- tripod -->
+  <line x1="365" y1="458" x2="305" y2="780" stroke="#6B6B6B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="470" y1="458" x2="470" y2="780" stroke="#6B6B6B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="575" y1="458" x2="640" y2="780" stroke="#6B6B6B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="352" y1="458" x2="588" y2="458" stroke="#5D5D5D" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- asbestos wire gauze -->
+  <rect x="340" y="418" width="260" height="40" rx="8" fill="url(#mesh)" stroke="#404040" stroke-width="8"/>
+
+  <!-- large beaker -->
+  <rect x="396" y="248" width="148" height="170" rx="18" fill="#FFFFFF" fill-opacity="0.72" stroke="#4E6278" stroke-width="8"/>
+  <rect x="406" y="334" width="128" height="72" rx="10" fill="url(#water)" opacity="0.92"/>
+  <line x1="408" y1="334" x2="532" y2="334" stroke="#46B8EF" stroke-width="5" opacity="0.75"/>
+  <rect x="412" y="268" width="18" height="118" rx="9" fill="#FFFFFF" opacity="0.42"/>
+
+  <!-- small beaker inside -->
+  <rect x="446" y="286" width="56" height="112" rx="10" fill="#FFFFFF" fill-opacity="0.75" stroke="#4E6278" stroke-width="6"/>
+  <rect x="454" y="342" width="40" height="42" rx="8" fill="url(#smallLiquid)" opacity="0.95"/>
+  <rect x="456" y="300" width="8" height="76" rx="4" fill="#FFFFFF" opacity="0.45"/>
+
+  <!-- steam -->
+  <path d="M458 277 Q444 255 458 236 Q472 218 459 196" fill="none" stroke="#9A9A9A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M475 272 Q462 248 476 228 Q490 210 478 188" fill="none" stroke="#9A9A9A" stroke-width="6" stroke-linecap="round"/>
+  <path d="M492 277 Q506 255 492 236 Q478 218 491 196" fill="none" stroke="#9A9A9A" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- student body -->
+  <rect x="714" y="398" width="214" height="252" rx="34" fill="#FFFFFF" stroke="#334155" stroke-width="7"/>
+  <path d="M780 430 L744 635 L896 635 L860 430 Z" fill="#7CC8FF" opacity="0.95"/>
+  <path d="M788 430 L812 470 L836 430" fill="#FFFFFF" stroke="#334155" stroke-width="5" stroke-linejoin="round"/>
+  <line x1="821" y1="458" x2="821" y2="620" stroke="#D6E4F0" stroke-width="5"/>
+
+  <!-- neck -->
+  <rect x="792" y="364" width="42" height="40" rx="12" fill="#FFD8B6" stroke="#3B3B3B" stroke-width="5"/>
+
+  <!-- head -->
+  <circle cx="813" cy="304" r="82" fill="#FFD8B6" stroke="#3B3B3B" stroke-width="6"/>
+
+  <!-- hair -->
+  <path d="M731 298 Q747 220 812 216 Q878 220 894 292 Q869 254 812 254 Q754 254 731 298Z"
+        fill="#4C2D27" stroke="#3B241E" stroke-width="6"/>
+  <path d="M748 274 Q777 248 811 251 Q846 252 874 278 Q860 248 828 238 Q788 226 748 274Z"
+        fill="#5A362F" opacity="0.9"/>
+
+  <!-- face -->
+  <line x1="773" y1="281" x2="798" y2="274" stroke="#3B3B3B" stroke-width="5" stroke-linecap="round"/>
+  <line x1="828" y1="274" x2="853" y2="281" stroke="#3B3B3B" stroke-width="5" stroke-linecap="round"/>
+
+  <path d="M770 316 Q784 302 798 316" fill="none" stroke="#3B3B3B" stroke-width="5" stroke-linecap="round"/>
+  <path d="M828 316 Q842 302 856 316" fill="none" stroke="#3B3B3B" stroke-width="5" stroke-linecap="round"/>
+
+  <circle cx="777" cy="336" r="8" fill="#FFB7B7" opacity="0.7"/>
+  <circle cx="850" cy="336" r="8" fill="#FFB7B7" opacity="0.7"/>
+
+  <ellipse cx="813" cy="348" rx="24" ry="31" fill="#F87171" stroke="#883333" stroke-width="5"/>
+  <ellipse cx="813" cy="362" rx="12" ry="8" fill="#FFB3B3" opacity="0.85"/>
+
+  <!-- sweat drop -->
+  <path d="M884 324 Q903 296 889 278 Q871 297 884 324Z" fill="#8EDCFF" stroke="#4AAFE8" stroke-width="4"/>
+
+  <!-- reaching arm outline -->
+  <path d="M747 482 Q667 470 610 435 Q567 404 540 367"
+        fill="none" stroke="#3B3B3B" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- reaching arm fill -->
+  <path d="M747 482 Q667 470 610 435 Q567 404 540 367"
+        fill="none" stroke="#FFD8B6" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- palm -->
+  <circle cx="542" cy="366" r="20" fill="#3B3B3B"/>
+  <circle cx="542" cy="366" r="15" fill="#FFD8B6"/>
+
+  <!-- fingers outline -->
+  <path d="M540 356 Q524 338 508 323" fill="none" stroke="#3B3B3B" stroke-width="14" stroke-linecap="round"/>
+  <path d="M549 364 Q535 348 519 334" fill="none" stroke="#3B3B3B" stroke-width="13" stroke-linecap="round"/>
+  <path d="M556 372 Q544 359 531 346" fill="none" stroke="#3B3B3B" stroke-width="12" stroke-linecap="round"/>
+  <path d="M542 374 Q526 365 514 353" fill="none" stroke="#3B3B3B" stroke-width="12" stroke-linecap="round"/>
+
+  <!-- fingers fill -->
+  <path d="M540 356 Q524 338 508 323" fill="none" stroke="#FFD8B6" stroke-width="9" stroke-linecap="round"/>
+  <path d="M549 364 Q535 348 519 334" fill="none" stroke="#FFD8B6" stroke-width="8.5" stroke-linecap="round"/>
+  <path d="M556 372 Q544 359 531 346" fill="none" stroke="#FFD8B6" stroke-width="8" stroke-linecap="round"/>
+  <path d="M542 374 Q526 365 514 353" fill="none" stroke="#FFD8B6" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- pain spark at touch point -->
+  <polygon points="506,314 516,323 530,319 523,332 533,344 520,341 514,354 506,343 493,348 498,334 487,323 500,323"
+           fill="#FF6257" stroke="#B23228" stroke-width="4"/>
+
+  <!-- small hot red highlight near beaker -->
+  <circle cx="503" cy="323" r="8" fill="#FF8A80" opacity="0.9"/>
+
+  <!-- recoil motion lines -->
+  <line x1="583" y1="383" x2="618" y2="394" stroke="#585858" stroke-width="5" stroke-linecap="round"/>
+  <line x1="575" y1="406" x2="618" y2="418" stroke="#585858" stroke-width="5" stroke-linecap="round"/>
+  <line x1="569" y1="360" x2="603" y2="370" stroke="#585858" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- red X overlay -->
+  <line x1="120" y1="120" x2="904" y2="904" stroke="#FF3B30" stroke-width="118" stroke-linecap="round" opacity="0.22"/>
+  <line x1="904" y1="120" x2="120" y2="904" stroke="#FF3B30" stroke-width="118" stroke-linecap="round" opacity="0.22"/>
+  <line x1="120" y1="120" x2="904" y2="904" stroke="#E03127" stroke-width="26" stroke-linecap="round" opacity="0.55"/>
+  <line x1="904" y1="120" x2="120" y2="904" stroke="#E03127" stroke-width="26" stroke-linecap="round" opacity="0.55"/>
+</svg>

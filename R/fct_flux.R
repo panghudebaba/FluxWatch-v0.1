@@ -160,18 +160,22 @@ fw_plot_flux_diag <- function(res) {
   invisible(NULL)
 }
 
+
 # ---------- 总调度入口 ----------
 
 fw_run_flux_with_config <- function(dat_daily = NULL,
-                                    method = c("weighted", "interp", "ratio", "regression", "composite"),
+                                    method = c("weighted", "interp", "ratio",
+                                               "regression", "composite"),
                                     date_range = NULL,
-                                    # ← 已删除 param1 / param2 参数
-                                    conv_factor = 86.4, step1_data = NULL,
-                                    regression_cfg = list(), composite_cfg = list()) {
+                                    conv_factor = 86.4,
+                                    step1_data = NULL,
+                                    regression_cfg = list(),
+                                    composite_cfg  = list(),
+                                    interp_cfg     = list(),
+                                    weighted_cfg   = list()) {   # ← 新增参数
   method <- match.arg(method)
-  # ← 已删除 to_scalar_num / p1 / p2
 
-  # ---- 回归法专属入口 (fct_flux_regression.R) ----
+  # ---- 回归法 ----
   if (identical(method, "regression") && !is.null(step1_data)) {
     return(fw_run_flux_regression_loadflex(
       step1_data   = step1_data,
@@ -180,10 +184,50 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
       constituent  = regression_cfg$constituent  %||% "TN",
       date_range   = date_range,
       model_choice = regression_cfg$model_choice %||% "loadLm_season"))
-    # ← 已删除 param1 = p1, param2 = p2
   }
 
-  # ---- 复合法专属入口 (fct_flux_composite.R) ----
+  # ---- 平均方法（Method 1–5） ----
+  if (identical(method, "interp") && !is.null(step1_data)) {
+    return(fw_run_flux_interp_riverload(
+      step1_data  = step1_data,
+      qf_sheet    = interp_cfg$qf_sheet    %||% NULL,
+      wq_sheet    = interp_cfg$wq_sheet    %||% NULL,
+      constituent = interp_cfg$constituent %||% "TN",
+      date_range  = date_range,
+      sub_method  = interp_cfg$sub_method  %||% "method1",
+      conv_factor = conv_factor))
+  }
+  if (identical(method, "interp") && !is.null(dat_daily)) {
+    return(fw_run_flux_interp_riverload(
+      dat_daily   = dat_daily,
+      constituent = interp_cfg$constituent %||% "TN",
+      date_range  = date_range,
+      sub_method  = interp_cfg$sub_method  %||% "method1",
+      conv_factor = conv_factor))
+  }
+
+  # ---- 加权平均法（Method 1–5） ----
+  if (identical(method, "weighted") && !is.null(step1_data)) {
+    return(fw_run_flux_weighted(
+      step1_data  = step1_data,
+      qf_sheet    = weighted_cfg$qf_sheet    %||% NULL,
+      wq_sheet    = weighted_cfg$wq_sheet    %||% NULL,
+      constituent = weighted_cfg$constituent %||% "TN",
+      date_range  = date_range,
+      sub_method  = weighted_cfg$sub_method  %||% "method1",
+      conv_factor = conv_factor))
+  }
+  if (identical(method, "weighted") && !is.null(dat_daily)) {
+    return(fw_run_flux_weighted(
+      dat_daily   = dat_daily,
+      constituent = weighted_cfg$constituent %||% "TN",
+      date_range  = date_range,
+      sub_method  = weighted_cfg$sub_method  %||% "method1",
+      conv_factor = conv_factor))
+  }
+
+
+  # ---- 复合法 ----
   if (identical(method, "composite") && length(composite_cfg) > 0) {
     return(fw_run_composite_method(
       dat_daily     = dat_daily,
@@ -191,7 +235,6 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
       reg_model     = composite_cfg$reg_model     %||% "lm_season",
       interp_method = composite_cfg$interp_method %||% "linearInterpolation",
       conv_factor   = conv_factor,
-      # ← 已删除 param1 = p1, param2 = p2
       wrtds_windowY = composite_cfg$wrtds_windowY %||% 7,
       wrtds_windowQ = composite_cfg$wrtds_windowQ %||% 2,
       wrtds_windowS = composite_cfg$wrtds_windowS %||% 0.5,
@@ -200,7 +243,7 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
       date_range    = date_range))
   }
 
-  # ---- 简单方法 (weighted / interp / ratio / 以及无 composite_cfg 的 composite fallback) ----
+  # ---- 简单方法 (ratio) ----
   d <- as.data.frame(dat_daily, stringsAsFactors = FALSE)
   if (!all(c("date", "Q", "C_obs") %in% names(d)))
     stop("dat_daily must contain: date, Q, C_obs")
@@ -211,29 +254,30 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
     if (s > e) { tmp <- s; s <- e; e <- tmp }
     d <- d[d$date >= s & d$date <= e, , drop = FALSE]
   }
-  if (nrow(d) == 0) stop("当前时间范围内无可用数据。")
+  if (nrow(d) == 0) stop("\u5f53\u524d\u65f6\u95f4\u8303\u56f4\u5185\u65e0\u53ef\u7528\u6570\u636e\u3002")
 
-  # 分发到对应方法的计算函数
   calc_fn <- switch(method,
-                    weighted  = fw_calc_weighted,
-                    interp    = fw_calc_interp,
-                    ratio     = fw_calc_ratio,
-                    composite = fw_calc_composite_simple)  # fallback 简单复合
-  if (is.null(calc_fn)) stop(paste0("未找到方法 '", method, "' 的计算函数。"))
+                    ratio = fw_calc_ratio)
+  if (is.null(calc_fn)) stop(paste0("\u672a\u627e\u5230\u65b9\u6cd5 '", method, "' \u7684\u8ba1\u7b97\u51fd\u6570\u3002"))
 
   res <- calc_fn(d, conv_factor = conv_factor)
 
   if (exists("fw_fill_daily_id_from_source", mode = "function")) {
-    res$daily <- fw_fill_daily_id_from_source(res$daily, d, "station", c("station", "STNM_WQ", "STNM"))
-    res$daily <- fw_fill_daily_id_from_source(res$daily, d, "WYBM",    c("WYBM", "WYBM_WQ"))
+    res$daily <- fw_fill_daily_id_from_source(res$daily, d, "station",
+                                               c("station", "STNM_WQ", "STNM"))
+    res$daily <- fw_fill_daily_id_from_source(res$daily, d, "WYBM",
+                                               c("WYBM", "WYBM_WQ"))
   }
 
   res$summary <- fw_make_flux_summary_table(res$daily)
-  d_start <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date))) as.character(min(res$daily$date, na.rm = TRUE)) else NA_character_
-  d_end   <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date))) as.character(max(res$daily$date, na.rm = TRUE)) else NA_character_
+  d_start <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date)))
+    as.character(min(res$daily$date, na.rm = TRUE)) else NA_character_
+  d_end   <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date)))
+    as.character(max(res$daily$date, na.rm = TRUE)) else NA_character_
+
   res$params <- c(res$params %||% list(),
                   list(conv_factor = conv_factor,
-                       # ← 已删除 param1 = p1, param2 = p2
-                       date_start = d_start, date_end = d_end))
+                       date_start = d_start,
+                       date_end   = d_end))
   res
 }
