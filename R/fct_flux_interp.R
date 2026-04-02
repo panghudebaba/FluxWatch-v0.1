@@ -62,3 +62,20 @@ fw_calc_interp <- function(d, conv_factor = 86.4) {
        diag = list(weighted_conc = weighted_conc, n_obs = length(idx_obs)),
        params = list(conv_factor = conv_factor))
 }
+
+
+fw_interp_left_extra_ui <- function(ns, key = "interp") {
+  sub_ch <- fw_interp_sub_labels()
+  shiny::tagList(
+    shiny::helpText("\u63d2\u503c\u6cd5\u56fa\u5b9a\u8c03\u7528\u7b2c\u4e00\u6b65\u5904\u7406\u540e\u7684 QF/WQ \u6570\u636e"),
+    shiny::selectInput(ns(paste0("qf_sheet_", key)), "QF\u6570\u636e\u8868", choices = NULL),
+    shiny::selectInput(ns(paste0("wq_sheet_", key)), "WQ\u6570\u636e\u8868", choices = NULL),
+    shiny::selectInput(ns(paste0("constituent_", key)), "\u6c34\u8d28\u6307\u6807(j)", choices = NULL),
+    shiny::selectInput(
+      ns(paste0("interp_sub_", key)),
+      "\u63d2\u503c\u5b50\u65b9\u6cd5",
+      choices  = sub_ch,
+      selected = sub_ch[1]
+    )
+  )
+}
