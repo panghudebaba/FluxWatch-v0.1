@@ -172,7 +172,9 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
                                     regression_cfg = list(),
                                     composite_cfg  = list(),
                                     interp_cfg     = list(),
-                                    weighted_cfg   = list()) {   # ← 新增参数
+                                    weighted_cfg   = list(),
+                                    ratio_cfg      = list()) {   # ← 新增
+  # ← 新增参数
   method <- match.arg(method)
 
   # ---- 回归法 ----
@@ -186,25 +188,46 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
       model_choice = regression_cfg$model_choice %||% "loadLm_season"))
   }
 
-  # ---- 平均方法（Method 1–5） ----
+  # ---- 插值方法 ----
   if (identical(method, "interp") && !is.null(step1_data)) {
-    return(fw_run_flux_interp_riverload(
+    return(fw_run_flux_interp(
       step1_data  = step1_data,
       qf_sheet    = interp_cfg$qf_sheet    %||% NULL,
       wq_sheet    = interp_cfg$wq_sheet    %||% NULL,
       constituent = interp_cfg$constituent %||% "TN",
       date_range  = date_range,
-      sub_method  = interp_cfg$sub_method  %||% "method1",
+      sub_method  = interp_cfg$sub_method  %||% "method6",
       conv_factor = conv_factor))
   }
   if (identical(method, "interp") && !is.null(dat_daily)) {
-    return(fw_run_flux_interp_riverload(
+    return(fw_run_flux_interp(
       dat_daily   = dat_daily,
       constituent = interp_cfg$constituent %||% "TN",
       date_range  = date_range,
-      sub_method  = interp_cfg$sub_method  %||% "method1",
+      sub_method  = interp_cfg$sub_method  %||% "method6",
       conv_factor = conv_factor))
   }
+
+  # ---- 比率估计（Method 7/8） ----
+  if (identical(method, "ratio") && !is.null(step1_data)) {
+    return(fw_run_flux_ratio(
+      step1_data  = step1_data,
+      qf_sheet    = ratio_cfg$qf_sheet    %||% NULL,
+      wq_sheet    = ratio_cfg$wq_sheet    %||% NULL,
+      constituent = ratio_cfg$constituent %||% "TN",
+      date_range  = date_range,
+      sub_method  = ratio_cfg$sub_method  %||% "method7",
+      conv_factor = conv_factor))
+  }
+  if (identical(method, "ratio") && !is.null(dat_daily)) {
+    return(fw_run_flux_ratio(
+      dat_daily   = dat_daily,
+      constituent = ratio_cfg$constituent %||% "TN",
+      date_range  = date_range,
+      sub_method  = ratio_cfg$sub_method  %||% "method7",
+      conv_factor = conv_factor))
+  }
+
 
   # ---- 加权平均法（Method 1–5） ----
   if (identical(method, "weighted") && !is.null(step1_data)) {
@@ -243,41 +266,4 @@ fw_run_flux_with_config <- function(dat_daily = NULL,
       date_range    = date_range))
   }
 
-  # ---- 简单方法 (ratio) ----
-  d <- as.data.frame(dat_daily, stringsAsFactors = FALSE)
-  if (!all(c("date", "Q", "C_obs") %in% names(d)))
-    stop("dat_daily must contain: date, Q, C_obs")
-  d$date <- fw_as_date(d$date)
-
-  if (!is.null(date_range) && length(date_range) == 2 && all(!is.na(date_range))) {
-    s <- as.Date(date_range[1]); e <- as.Date(date_range[2])
-    if (s > e) { tmp <- s; s <- e; e <- tmp }
-    d <- d[d$date >= s & d$date <= e, , drop = FALSE]
-  }
-  if (nrow(d) == 0) stop("\u5f53\u524d\u65f6\u95f4\u8303\u56f4\u5185\u65e0\u53ef\u7528\u6570\u636e\u3002")
-
-  calc_fn <- switch(method,
-                    ratio = fw_calc_ratio)
-  if (is.null(calc_fn)) stop(paste0("\u672a\u627e\u5230\u65b9\u6cd5 '", method, "' \u7684\u8ba1\u7b97\u51fd\u6570\u3002"))
-
-  res <- calc_fn(d, conv_factor = conv_factor)
-
-  if (exists("fw_fill_daily_id_from_source", mode = "function")) {
-    res$daily <- fw_fill_daily_id_from_source(res$daily, d, "station",
-                                               c("station", "STNM_WQ", "STNM"))
-    res$daily <- fw_fill_daily_id_from_source(res$daily, d, "WYBM",
-                                               c("WYBM", "WYBM_WQ"))
-  }
-
-  res$summary <- fw_make_flux_summary_table(res$daily)
-  d_start <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date)))
-    as.character(min(res$daily$date, na.rm = TRUE)) else NA_character_
-  d_end   <- if (nrow(res$daily) > 0 && any(!is.na(res$daily$date)))
-    as.character(max(res$daily$date, na.rm = TRUE)) else NA_character_
-
-  res$params <- c(res$params %||% list(),
-                  list(conv_factor = conv_factor,
-                       date_start = d_start,
-                       date_end   = d_end))
-  res
 }
