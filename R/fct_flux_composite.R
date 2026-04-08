@@ -18,15 +18,17 @@ if (!exists("%||%", mode = "function")) {
 #' @param reg_model  "lm_season" / "lm_simple"
 #' @param interp_method loadflex 插值函数名
 #' @return list(pred_df, comp_model, sub_method, backend, ...)
+
 fw_run_loadcomp <- function(d,
-                            sub_method  = c("abs_linear", "rel_linear",
-                                            "abs_log", "rel_log"),
-                            reg_model   = "lm_season",
+                            sub_method    = c("abs_linear", "rel_linear",
+                                              "abs_log", "rel_log"),
+                            reg_model     = "lm_season",
                             interp_method = "linearInterpolation") {
+
   sub_method <- match.arg(sub_method)
 
   if (!requireNamespace("loadflex", quietly = TRUE))
-    stop("loadflex 包未安装。")
+    stop("loadflex \u5305\u672a\u5b89\u88c5\u3002")
 
   # ---------- 准备数据 ----------
   lf_data <- fw_to_loadflex_data(d)
@@ -34,118 +36,139 @@ fw_run_loadcomp <- function(d,
   calib   <- lf_data$calib
   alldata <- lf_data$all
 
-  # ---------- 回归公式 ----------
   use_log <- sub_method %in% c("abs_log", "rel_log")
 
-  formula_simple <- if (use_log) {
-    stats::as.formula(log(conc) ~ log(Q))
-  } else {
-    stats::as.formula(conc ~ Q)
-  }
-  formula_season <- if (use_log) {
-    stats::as.formula(log(conc) ~ log(Q) +
-                        sin(2 * pi * doy / 365) + cos(2 * pi * doy / 365))
-  } else {
-    stats::as.formula(conc ~ Q +
-                        sin(2 * pi * doy / 365) + cos(2 * pi * doy / 365))
-  }
-
-  lm_formula <- if (identical(reg_model, "lm_simple")) formula_simple
-  else formula_season
-
-  # ---------- 构建 loadLm (回归结构项) ----------
-  reg_obj <- loadflex::loadLm(
-    formula     = lm_formula,
-    pred.format = "conc",
-    data        = calib,
-    metadata    = meta,
-    retrans     = if (use_log) loadflex::exp else NULL)
-
   # ---------- 插值函数 ----------
-  interp_fun <- switch(interp_method,
-                       linearInterpolation      = loadflex::linearInterpolation,
-                       rectangularInterpolation = loadflex::rectangularInterpolation,
-                       splineInterpolation      = if (exists("splineInterpolation",
-                                                             where = asNamespace("loadflex"),
-                                                             mode  = "function"))
-                         loadflex::splineInterpolation
-                       else loadflex::linearInterpolation,
-                       loadflex::linearInterpolation)
+  interp_fun <- switch(
+    interp_method,
+    linearInterpolation      = loadflex::linearInterpolation,
+    rectangularInterpolation = loadflex::rectangularInterpolation,
+    loadflex::linearInterpolation
+  )
 
-  # ---------- abs_* → 标准 loadComp ----------
-  if (sub_method %in% c("abs_linear", "abs_log")) {
-    comp_obj <- loadflex::loadComp(
-      reg.model     = reg_obj,
-      interp.format = "conc",
-      interp.data   = calib,
-      interp.fun    = interp_fun)
+  # =================================================================
+  # Step A: 回归拟合（用 base R lm，不用 loadflex::loadLm）
+  # =================================================================
+  calib$log_Q   <- log(pmax(calib$Q, 1e-8))
+  alldata$log_Q <- log(pmax(alldata$Q, 1e-8))
 
-    pred_raw <- loadflex::predictSolute(
-      load.model   = comp_obj,
-      flux.or.conc = "flux",
-      newdata      = alldata,
-      date         = TRUE,
-      by           = "unit",
-      fit.reg      = TRUE)
+  if (use_log) {
+    # ---- log 空间：响应变量 = log(conc) ----
+    calib$log_conc <- log(pmax(calib$conc, 1e-10))
 
-    pred_df <- as.data.frame(pred_raw, stringsAsFactors = FALSE)
+    fit <- if (identical(reg_model, "lm_simple")) {
+      stats::lm(log_conc ~ log_Q, data = calib)
+    } else {
+      stats::lm(log_conc ~ log_Q +
+                  sin(2 * pi * doy / 365) + cos(2 * pi * doy / 365),
+                data = calib)
+    }
 
-    return(list(
-      pred_df       = pred_df,
-      comp_model    = comp_obj,
-      reg_model_obj = reg_obj,
-      sub_method    = sub_method,
-      backend       = "loadflex::loadComp"))
+    log_C_reg_calib <- stats::predict(fit, newdata = calib)
+    log_C_reg_all   <- stats::predict(fit, newdata = alldata)
+
+    C_reg_calib <- exp(log_C_reg_calib)
+    C_reg_all   <- exp(log_C_reg_all)
+
+  } else {
+    # ---- 线性空间：响应变量 = conc ----
+    fit <- if (identical(reg_model, "lm_simple")) {
+      stats::lm(conc ~ Q, data = calib)
+    } else {
+      stats::lm(conc ~ Q +
+                  sin(2 * pi * doy / 365) + cos(2 * pi * doy / 365),
+                data = calib)
+    }
+
+    C_reg_calib <- stats::predict(fit, newdata = calib)
+    C_reg_all   <- stats::predict(fit, newdata = alldata)
   }
 
-  # ---------- rel_* → 手动用 loadflex 组件组合 ----------
-  # 1) 回归预测（采样日 & 全日期）
-  pred_reg_calib <- loadflex::predictSolute(
-    load.model = reg_obj, flux.or.conc = "conc",
-    newdata = calib, date = TRUE, by = "unit")
-  C_reg_calib <- fw_as_num(as.data.frame(pred_reg_calib)[, 2])
-
-  pred_reg_all <- loadflex::predictSolute(
-    load.model = reg_obj, flux.or.conc = "conc",
-    newdata = alldata, date = TRUE, by = "unit")
-  pred_reg_df  <- as.data.frame(pred_reg_all, stringsAsFactors = FALSE)
-  C_reg_all    <- fw_as_num(pred_reg_df[, 2])
-
-  # 2) 相对残差 R = (C_obs - C_reg) / C_reg
+  # =================================================================
+  # Step B: 计算残差 & 插值
+  # =================================================================
   C_obs_calib <- fw_as_num(calib$conc)
-  safe_denom  <- ifelse(abs(C_reg_calib) < 1e-10, 1e-10, C_reg_calib)
-  R_rel       <- (C_obs_calib - C_reg_calib) / safe_denom
 
-  # 3) 用 loadInterp 插值相对残差
+  if (sub_method == "abs_linear") {
+    # ---- 绝对残差 + 线性空间 ----
+    R_calib <- C_obs_calib - C_reg_calib
+
+  } else if (sub_method == "abs_log") {
+    # ---- 绝对残差 + log 空间 ----
+    # R = log(C_obs) - log(C_reg)  (在 log 空间是加性)
+    R_calib <- log(pmax(C_obs_calib, 1e-10)) - log(pmax(C_reg_calib, 1e-10))
+
+  } else if (sub_method == "rel_linear") {
+    # ---- 相对残差 + 线性空间 ----
+    safe_denom <- ifelse(abs(C_reg_calib) < 1e-10, 1e-10, C_reg_calib)
+    R_calib <- (C_obs_calib - C_reg_calib) / safe_denom
+
+  } else {
+    # ---- rel_log：相对残差 + log 空间 ----
+    safe_denom <- ifelse(abs(C_reg_calib) < 1e-10, 1e-10, C_reg_calib)
+    R_calib <- (C_obs_calib - C_reg_calib) / safe_denom
+  }
+
+  # 用 loadInterp 插值残差
   resid_df <- data.frame(
     date = fw_as_date(calib$date),
     Q    = calib$Q,
-    conc = R_rel,       # 把 "conc" 列当容器存残差
-    stringsAsFactors = FALSE)
-  meta_resid <- fw_build_loadflex_meta()
+    conc = R_calib,    # 借用 "conc" 列存残差
+    stringsAsFactors = FALSE
+  )
+
   interp_obj <- loadflex::loadInterp(
     interp.format = "conc",
     interp.fun    = interp_fun,
     data          = resid_df,
-    metadata      = meta_resid)
-  pred_R <- loadflex::predictSolute(
-    load.model = interp_obj, flux.or.conc = "conc",
-    newdata = alldata, date = TRUE, by = "unit")
-  R_all <- fw_as_num(as.data.frame(pred_R)[, 2])
+    metadata      = meta
+  )
 
-  # 4) 合成
-  if (identical(sub_method, "rel_linear")) {
+  pred_R <- loadflex::predictSolute(
+    load.model   = interp_obj,
+    flux.or.conc = "conc",
+    newdata      = alldata,
+    date         = TRUE,
+    by           = "unit"
+  )
+  R_all <- fw_as_num(as.data.frame(pred_R, stringsAsFactors = FALSE)[, 2])
+
+  # =================================================================
+  # Step C: 合成浓度
+  # =================================================================
+  if (sub_method == "abs_linear") {
+    # C_comp = C_reg + R
+    C_comp <- C_reg_all + R_all
+
+  } else if (sub_method == "abs_log") {
+    # log(C_comp) = log(C_reg) + R  =>  C_comp = C_reg * exp(R)
+    C_comp <- C_reg_all * exp(R_all)
+
+  } else if (sub_method == "rel_linear") {
+    # C_comp = C_reg * (1 + R)
     C_comp <- C_reg_all * (1 + R_all)
+
   } else {
-    # rel_log: log L_hat = log L_reg + log(1 + R)
+    # rel_log: log(C_comp) = log(C_reg) + log(1 + R)
     R_safe <- pmax(R_all, -0.999)
-    C_comp <- ifelse(is.finite(C_reg_all) & C_reg_all > 0,
-                     exp(log(C_reg_all) + log(1 + R_safe)),
-                     C_reg_all)
+    C_comp <- ifelse(
+      is.finite(C_reg_all) & C_reg_all > 0,
+      exp(log(pmax(C_reg_all, 1e-10)) + log(1 + R_safe)),
+      C_reg_all
+    )
   }
 
-  flux_comp <- ifelse(is.finite(alldata$Q) & is.finite(C_comp),
-                      alldata$Q * C_comp * 86.4, NA_real_)
+  # 负浓度修正
+  C_comp <- pmax(C_comp, 0)
+
+  # =================================================================
+  # Step D: 计算通量
+  # =================================================================
+  flux_comp <- ifelse(
+    is.finite(alldata$Q) & is.finite(C_comp),
+    alldata$Q * C_comp * 86.4,
+    NA_real_
+  )
 
   pred_df <- data.frame(
     date     = fw_as_date(alldata$date),
@@ -153,21 +176,24 @@ fw_run_loadcomp <- function(d,
     C_reg    = C_reg_all,
     C_comp   = C_comp,
     R_interp = R_all,
-    stringsAsFactors = FALSE)
+    stringsAsFactors = FALSE
+  )
 
   list(
     pred_df       = pred_df,
     comp_model    = interp_obj,
-    reg_model_obj = reg_obj,
+    reg_model_obj = fit,
     sub_method    = sub_method,
-    backend       = "loadflex (loadLm + loadInterp manual composite)")
+    backend       = "base::lm + loadflex::loadInterp (manual composite)"
+  )
 }
 
 # ====================================================================
 #  2. WRTDS-Kalman（直接调用 EGRET + EGRETci）
 # ====================================================================
 
-#' 用 EGRET + EGRETci 运行 WRTDS-Kalman
+
+#' 用 EGRET 运行 WRTDS-Kalman
 #'
 #' @param d          data.frame(date, Q, C_obs, ...)
 #' @param rho        AR(1) 参数
@@ -184,10 +210,53 @@ fw_run_wrtds_kalman <- function(d,
                                 windowQ    = 2,
                                 windowS    = 0.5,
                                 station_nm = "Station") {
+
   if (!requireNamespace("EGRET", quietly = TRUE))
-    stop("EGRET 包未安装。")
-  if (!requireNamespace("EGRETci", quietly = TRUE))
-    stop("EGRETci 包未安装。")
+    stop("EGRET \u5305\u672a\u5b89\u88c5\u3002\u8bf7\u8fd0\u884c install.packages('EGRET')")
+
+  # ── ★ 探测 WRTDSKalman 函数位置 ──
+  wrtds_k_fn <- NULL
+  wrtds_k_backend <- ""
+
+
+  # 优先级 1：EGRET 包（新版 >= 3.0.7）
+  if (exists("WRTDSKalman", where = asNamespace("EGRET"), mode = "function")) {
+    wrtds_k_fn <- EGRET::WRTDSKalman
+    wrtds_k_backend <- "EGRET::WRTDSKalman"
+  }
+
+  # 优先级 2：EGRETci 包（旧版）
+  if (is.null(wrtds_k_fn) && requireNamespace("EGRETci", quietly = TRUE)) {
+    if (exists("WRTDSKalman", where = asNamespace("EGRETci"), mode = "function")) {
+      wrtds_k_fn <- EGRETci::WRTDSKalman
+      wrtds_k_backend <- "EGRETci::WRTDSKalman"
+    }
+  }
+
+  # 优先级 3：用 getFromNamespace 尝试非导出函数
+
+  if (is.null(wrtds_k_fn)) {
+    wrtds_k_fn <- tryCatch(
+      utils::getFromNamespace("WRTDSKalman", "EGRET"),
+      error = function(e) NULL
+    )
+    if (!is.null(wrtds_k_fn)) wrtds_k_backend <- "EGRET:::WRTDSKalman (internal)"
+  }
+
+  if (is.null(wrtds_k_fn)) {
+    # 优先级 4：尝试 EGRETci 非导出
+    wrtds_k_fn <- tryCatch(
+      utils::getFromNamespace("WRTDSKalman", "EGRETci"),
+      error = function(e) NULL
+    )
+    if (!is.null(wrtds_k_fn)) wrtds_k_backend <- "EGRETci:::WRTDSKalman (internal)"
+  }
+
+  if (is.null(wrtds_k_fn))
+    stop("WRTDSKalman \u51fd\u6570\u672a\u627e\u5230\u3002\u8bf7\u5347\u7ea7 EGRET \u5305\uff1a\n",
+         "  install.packages('EGRET')\n",
+         "\u6216\u5b89\u88c5 EGRETci\uff1a\n",
+         "  remotes::install_github('USGS-R/EGRETci')")
 
   # ---------- 构建 eList ----------
   eList <- fw_build_elist(d, station_nm = station_nm, param_nm = "Conc")
@@ -203,14 +272,9 @@ fw_run_wrtds_kalman <- function(d,
   eList <- EGRET::modelEstimation(eList, verbose = FALSE)
 
   # ---------- Step 2: Kalman 校正 ----------
-  eList <- EGRETci::WRTDSKalman(eList, rho = rho, niter = niter)
+  eList <- wrtds_k_fn(eList, rho = rho, niter = niter)
 
   # ---------- 提取结果 ----------
-  # EGRET Daily 在 WRTDSKalman 后包含:
-  #   ConcDay = WRTDS 原始浓度预测
-  #   FluxDay = WRTDS 原始通量 (kg/d)
-  #   GenConc = Kalman 校正后浓度
-  #   GenFlux = Kalman 校正后通量 (kg/d)
   list(
     eList     = eList,
     Daily_out = eList$Daily,
@@ -218,8 +282,10 @@ fw_run_wrtds_kalman <- function(d,
     INFO      = eList$INFO,
     rho       = rho,
     niter     = niter,
-    backend   = "EGRET::modelEstimation + EGRETci::WRTDSKalman")
+    backend   = paste0("EGRET::modelEstimation + ", wrtds_k_backend)
+  )
 }
+
 
 # ====================================================================
 #  3. 总调度入口

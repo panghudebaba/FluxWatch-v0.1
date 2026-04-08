@@ -273,7 +273,7 @@ mod_flux_server <- function(id, rv) {
     fw_weighted_init_observers(input, session, step1_qf_wq)
     fw_interp_init_observers(input, session, step1_qf_wq)
     fw_ratio_init_observers(input, session, step1_qf_wq)
-    fw_regression_init_observers(input, session, step1_qf_wq)
+    fw_regression_init_observers(input, output, session, step1_qf_wq, key = "regression")
     fw_composite_init_observers(input, session, step1_qf_wq, key = "composite")
 
     # ======== 每个方法页的通用 Server 逻辑 ========
@@ -395,7 +395,7 @@ mod_flux_server <- function(id, rv) {
           res <- fw_regression_run_calc(input, step1_qf_wq, key)
 
         } else if (identical(key, "composite")) {
-          res <- fw_composite_run_calc(input, daily_station, key, conv_factor_fixed)
+          res <- fw_composite_run_calc(input, step1_qf_wq, key)
 
           qf_sel <- input[[paste0("qf_sheet_", key)]] %||% ""
           wq_sel <- input[[paste0("wq_sheet_", key)]] %||% ""

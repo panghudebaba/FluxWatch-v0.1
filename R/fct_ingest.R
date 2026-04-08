@@ -36,7 +36,7 @@ fw_as_numeric <- function(x) {
   if (is.numeric(x)) return(x)
   x <- fw_trim_na(x)
   x <- gsub(",", "", x)
-  x <- gsub("，", "", x)
+  x <- gsub("\uff0c", "", x)
   suppressWarnings(as.numeric(x))
 }
 
@@ -108,7 +108,6 @@ fw_drop_empty_df <- function(df) {
 
 # ---------------------------------------------------------
 # Fixed-range sheet readers
-# 使用 cell_limits，避免 B4:N1048576 这类范围告警
 # ---------------------------------------------------------
 fw_read_sheet_fixed <- function(path, sheet, start_row = 4, start_col = 2, end_col) {
   dat <- readxl::read_excel(
@@ -171,41 +170,103 @@ fw_build_topology_from_info <- function(info) {
 
 
 # ---------------------------------------------------------
-# Format log
+# ★ 识别 WaterQuality 中的水质指标列
+# ---------------------------------------------------------
+
+#' 从 WaterQuality data.frame 中自动识别水质指标列
+#' 排除元数据列（TM, WYBM, STNM 等），保留含有效数值的列
+#' @param df  WaterQuality data.frame（已 clean_names）
+#' @return character vector：指标列名
+fw_detect_wq_constituents <- function(df) {
+  if (is.null(df) || ncol(df) == 0) return(character(0))
+
+  # 元数据列（不是水质指标的列）
+
+  meta_cols <- c(
+    "TM", "tm", "date", "Date", "DATE", "datetime", "Datetime",
+    "WYBM", "wybm",
+    "STNM", "stnm", "station", "Station", "STATION",
+    "site", "Site", "site_no",
+    "\u65e5\u671f", "\u7ad9\u70b9", "\u7ad9\u540d", "\u6c34\u6e90\u6807\u7801",
+    "doy", "DOY", "year", "month", "day",
+    "flow_row_missing", "is_imputed", "Q_original", "Q_imputed"
+  )
+
+  all_cols <- names(df)
+  candidate_cols <- setdiff(all_cols, meta_cols)
+
+  if (length(candidate_cols) == 0) return(character(0))
+
+  # 进一步筛选：必须至少有 1 个有效数值
+  valid_cols <- character(0)
+  for (cc in candidate_cols) {
+    vals <- suppressWarnings(as.numeric(as.character(df[[cc]])))
+    if (any(is.finite(vals))) {
+      valid_cols <- c(valid_cols, cc)
+    }
+  }
+
+  valid_cols
+}
+
+
 # ---------------------------------------------------------
 fw_format_ingest_log <- function(
     sheets,
     issues = character(0),
     flow_info = NULL,
-    info_meta = NULL
+    info_meta = NULL,
+    wq_meta = NULL
 ) {
   lines <- c(
-    "Workbook loaded / 工作簿已加载",
-    paste0("Sheets detected / 检测到工作表: ", paste(sheets, collapse = ", "))
+    "Workbook loaded / \u5de5\u4f5c\u7c3f\u5df2\u52a0\u8f7d",
+    paste0("Sheets detected / \u68c0\u6d4b\u5230\u5de5\u4f5c\u8868: ",
+           paste(sheets, collapse = ", "))
   )
 
   if (!is.null(info_meta)) {
     if (!is.null(info_meta$station_names) && length(info_meta$station_names) > 0) {
-      lines <- c(lines, paste0("Stations / 站点: ", paste(info_meta$station_names, collapse = ", ")))
+      lines <- c(lines, paste0("Stations / \u7ad9\u70b9: ",
+                               paste(info_meta$station_names, collapse = ", ")))
     }
-    if (!is.null(info_meta$parameter_names) && length(info_meta$parameter_names) > 0) {
-      lines <- c(lines, paste0("Parameter / 指标: ", paste(info_meta$parameter_names, collapse = ", ")))
+    # ★ 删除了 info_meta$parameter_names 的输出
+  }
+
+  # ★ 只保留 WQ 实测指标
+  if (!is.null(wq_meta)) {
+    if (!is.null(wq_meta$constituent_cols) && length(wq_meta$constituent_cols) > 0) {
+      lines <- c(lines, paste0("Parameter / \u6307\u6807: ",
+                               paste(wq_meta$constituent_cols, collapse = ", ")))
+      lines <- c(lines, paste0("WQ constituents count / \u6c34\u8d28\u6307\u6807\u6570: ",
+                               length(wq_meta$constituent_cols)))
+    }
+    if (!is.null(wq_meta$n_samples) && is.finite(wq_meta$n_samples)) {
+      lines <- c(lines, paste0("WQ sample rows / \u6c34\u8d28\u6837\u54c1\u884c\u6570: ",
+                               wq_meta$n_samples))
+    }
+    if (!is.null(wq_meta$wq_stations) && length(wq_meta$wq_stations) > 0) {
+      lines <- c(lines, paste0("WQ stations / \u6c34\u8d28\u7ad9\u70b9: ",
+                               paste(wq_meta$wq_stations, collapse = ", ")))
     }
   }
 
-
   if (!is.null(flow_info)) {
-    lines <- c(lines, paste0("Flow stations / 流量站点数: ", flow_info$n_station %||% NA))
-    lines <- c(lines, paste0("Flow original rows / 原始流量行数: ", flow_info$n_rows_original %||% NA))
-    lines <- c(lines, paste0("Flow valid-date rows / 有效日期流量行数: ", flow_info$n_rows_valid_date %||% NA))
-    lines <- c(lines, paste0("Flow completed rows / 补齐后流量行数: ", flow_info$n_rows_completed %||% NA))
-    lines <- c(lines, paste0("Flow imputed rows / 插补流量行数: ", flow_info$n_imputed %||% NA))
+    lines <- c(lines, paste0("Flow stations / \u6d41\u91cf\u7ad9\u70b9\u6570: ",
+                             flow_info$n_station %||% NA))
+    lines <- c(lines, paste0("Flow original rows / \u539f\u59cb\u6d41\u91cf\u884c\u6570: ",
+                             flow_info$n_rows_original %||% NA))
+    lines <- c(lines, paste0("Flow valid-date rows / \u6709\u6548\u65e5\u671f\u6d41\u91cf\u884c\u6570: ",
+                             flow_info$n_rows_valid_date %||% NA))
+    lines <- c(lines, paste0("Flow completed rows / \u8865\u9f50\u540e\u6d41\u91cf\u884c\u6570: ",
+                             flow_info$n_rows_completed %||% NA))
+    lines <- c(lines, paste0("Flow imputed rows / \u63d2\u8865\u6d41\u91cf\u884c\u6570: ",
+                             flow_info$n_imputed %||% NA))
   }
 
   if (length(issues) == 0) {
-    lines <- c(lines, "", "No validation issues / 未发现校验问题")
+    lines <- c(lines, "", "No validation issues / \u672a\u53d1\u73b0\u6821\u9a8c\u95ee\u9898")
   } else {
-    lines <- c(lines, "", "Validation messages / 校验信息:")
+    lines <- c(lines, "", "Validation messages / \u6821\u9a8c\u4fe1\u606f:")
     lines <- c(lines, paste0(" - ", unique(issues)))
   }
 
@@ -228,7 +289,8 @@ fw_validate_info <- function(df) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("Info missing columns / Info 缺少字段: ", paste(miss, collapse = ", "))
+      paste0("Info missing columns / Info \u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
   }
 
@@ -245,8 +307,10 @@ fw_validate_info <- function(df) {
     df$drainageArea <- fw_as_numeric(df$drainageArea)
   }
 
-  station_names <- if ("stationName" %in% names(df)) unique(stats::na.omit(df$stationName)) else character(0)
-  parameter_names <- if ("paramShortName" %in% names(df)) unique(stats::na.omit(df$paramShortName)) else character(0)
+  station_names <- if ("stationName" %in% names(df))
+    unique(stats::na.omit(df$stationName)) else character(0)
+  parameter_names <- if ("paramShortName" %in% names(df))
+    unique(stats::na.omit(df$paramShortName)) else character(0)
 
   list(
     data = df,
@@ -257,7 +321,6 @@ fw_validate_info <- function(df) {
     )
   )
 }
-
 
 
 # ---------------------------------------------------------
@@ -271,7 +334,8 @@ fw_validate_precip <- function(df) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("Precip missing columns / Precip 缺少字段: ", paste(miss, collapse = ", "))
+      paste0("Precip missing columns / Precip \u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
     return(list(data = df, issues = unique(issues)))
   }
@@ -285,12 +349,13 @@ fw_validate_precip <- function(df) {
   if (any(is.na(df$TM))) {
     issues <- c(
       issues,
-      paste0("Precip contains invalid dates / Precip 存在无法解析的日期，行数: ", sum(is.na(df$TM)))
+      paste0("Precip contains invalid dates / Precip \u5b58\u5728\u65e0\u6cd5\u89e3\u6790\u7684\u65e5\u671f\uff0c\u884c\u6570: ",
+             sum(is.na(df$TM)))
     )
   }
 
   if (any(df$P < 0, na.rm = TRUE)) {
-    issues <- c(issues, "Precip contains negative values / Precip 存在负值")
+    issues <- c(issues, "Precip contains negative values / Precip \u5b58\u5728\u8d1f\u503c")
   }
 
   list(data = df, issues = unique(issues))
@@ -308,7 +373,8 @@ fw_complete_flow_dates <- function(df) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("Flow missing columns for continuity check / Flow 连续性检查缺少字段: ", paste(miss, collapse = ", "))
+      paste0("Flow missing columns for continuity check / Flow \u8fde\u7eed\u6027\u68c0\u67e5\u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
     return(list(data = df, issues = unique(issues), gap_summary = NULL))
   }
@@ -323,14 +389,15 @@ fw_complete_flow_dates <- function(df) {
   if (n_invalid_tm > 0) {
     issues <- c(
       issues,
-      paste0("Flow invalid TM rows excluded before completion / 补齐前剔除无效日期行数: ", n_invalid_tm)
+      paste0("Flow invalid TM rows excluded before completion / \u8865\u9f50\u524d\u5254\u9664\u65e0\u6548\u65e5\u671f\u884c\u6570: ",
+             n_invalid_tm)
     )
   }
 
   df_valid <- df[!is.na(df$TM) & !is.na(df$WYBM), , drop = FALSE]
 
   if (nrow(df_valid) == 0) {
-    issues <- c(issues, "Flow has no valid dates / Flow 没有可用于连续性检查的有效日期")
+    issues <- c(issues, "Flow has no valid dates / Flow \u6ca1\u6709\u53ef\u7528\u4e8e\u8fde\u7eed\u6027\u68c0\u67e5\u7684\u6709\u6548\u65e5\u671f")
     return(list(data = df, issues = unique(issues), gap_summary = NULL))
   }
 
@@ -369,7 +436,8 @@ fw_complete_flow_dates <- function(df) {
   if (nrow(gap_summary) > 0) {
     issues <- c(
       issues,
-      paste0("Flow date gaps detected / 发现流量日期不连续，涉及站点数: ", nrow(gap_summary))
+      paste0("Flow date gaps detected / \u53d1\u73b0\u6d41\u91cf\u65e5\u671f\u4e0d\u8fde\u7eed\uff0c\u6d89\u53ca\u7ad9\u70b9\u6570: ",
+             nrow(gap_summary))
     )
   }
 
@@ -392,7 +460,8 @@ fw_impute_flow_q <- function(df) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("Flow missing columns for imputation / Flow 插补缺少字段: ", paste(miss, collapse = ", "))
+      paste0("Flow missing columns for imputation / Flow \u63d2\u8865\u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
     return(list(data = df, issues = unique(issues)))
   }
@@ -445,7 +514,7 @@ fw_impute_flow_q <- function(df) {
 
   n_imp <- sum(out$is_imputed, na.rm = TRUE)
   if (n_imp > 0) {
-    issues <- c(issues, paste0("Flow imputed Q values / 已插补流量值行数: ", n_imp))
+    issues <- c(issues, paste0("Flow imputed Q values / \u5df2\u63d2\u8865\u6d41\u91cf\u503c\u884c\u6570: ", n_imp))
   }
 
   list(data = out, issues = unique(issues))
@@ -463,7 +532,8 @@ fw_validate_flow <- function(df, auto_impute = TRUE) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("Flow missing columns / Flow 缺少字段: ", paste(miss, collapse = ", "))
+      paste0("Flow missing columns / Flow \u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
     return(list(
       data = df,
@@ -492,23 +562,25 @@ fw_validate_flow <- function(df, auto_impute = TRUE) {
   if (n_invalid_tm > 0) {
     issues <- c(
       issues,
-      paste0("Flow contains invalid dates / Flow 存在无法解析的日期，行数: ", n_invalid_tm)
+      paste0("Flow contains invalid dates / Flow \u5b58\u5728\u65e0\u6cd5\u89e3\u6790\u7684\u65e5\u671f\uff0c\u884c\u6570: ",
+             n_invalid_tm)
     )
   }
 
   if (any(is.na(df$Q))) {
-    issues <- c(issues, "Flow contains missing or non-numeric Q / Flow 的 Q 存在缺失或非数值")
+    issues <- c(issues, "Flow contains missing or non-numeric Q / Flow \u7684 Q \u5b58\u5728\u7f3a\u5931\u6216\u975e\u6570\u503c")
   }
 
   if (any(df$Q <= 0, na.rm = TRUE)) {
-    issues <- c(issues, "Flow contains Q <= 0 / Flow 存在 Q <= 0")
+    issues <- c(issues, "Flow contains Q <= 0 / Flow \u5b58\u5728 Q <= 0")
   }
 
   dup <- duplicated(df[, c("TM", "WYBM")])
   if (any(dup, na.rm = TRUE)) {
     issues <- c(
       issues,
-      paste0("Flow contains duplicated date-station rows / Flow 存在重复日期-站点记录: ", sum(dup, na.rm = TRUE))
+      paste0("Flow contains duplicated date-station rows / Flow \u5b58\u5728\u91cd\u590d\u65e5\u671f-\u7ad9\u70b9\u8bb0\u5f55: ",
+             sum(dup, na.rm = TRUE))
     )
   }
 
@@ -543,7 +615,7 @@ fw_validate_flow <- function(df, auto_impute = TRUE) {
 
 
 # ---------------------------------------------------------
-# Validate WaterQuality
+# Validate WaterQuality  ★ 重写：自动识别指标列
 # ---------------------------------------------------------
 fw_validate_wq <- function(df) {
   issues <- character(0)
@@ -553,9 +625,18 @@ fw_validate_wq <- function(df) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("WaterQuality missing columns / WaterQuality 缺少字段: ", paste(miss, collapse = ", "))
+      paste0("WaterQuality missing columns / WaterQuality \u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
-    return(list(data = df, issues = unique(issues)))
+    return(list(
+      data = df,
+      issues = unique(issues),
+      wq_meta = list(
+        constituent_cols = character(0),
+        n_samples = NA_integer_,
+        wq_stations = character(0)
+      )
+    ))
   }
 
   df <- as.data.frame(df, stringsAsFactors = FALSE)
@@ -566,33 +647,62 @@ fw_validate_wq <- function(df) {
   if (any(is.na(df$TM))) {
     issues <- c(
       issues,
-      paste0("WaterQuality contains invalid dates / WaterQuality 存在无法解析的日期，行数: ", sum(is.na(df$TM)))
+      paste0("WaterQuality contains invalid dates / WaterQuality \u5b58\u5728\u65e0\u6cd5\u89e3\u6790\u7684\u65e5\u671f\uff0c\u884c\u6570: ",
+             sum(is.na(df$TM)))
     )
   }
 
-  conc_cols <- intersect(c("TN", "TP", "NO3N", "NH4N", "COD", "TOC"), names(df))
+  # ★ 自动识别所有水质指标列（不再硬编码 TN/TP/...）
+  conc_cols <- fw_detect_wq_constituents(df)
 
   if (length(conc_cols) == 0) {
-    issues <- c(issues, "No concentration columns found / 未找到常用浓度字段")
+    issues <- c(issues,
+                "No concentration columns found in WaterQuality / WaterQuality \u672a\u627e\u5230\u6c34\u8d28\u6307\u6807\u5217")
   } else {
+    # 逐列转数值 & 检查负值
     for (cc in conc_cols) {
       df[[cc]] <- fw_as_numeric(df[[cc]])
       neg_n <- sum(!is.na(df[[cc]]) & df[[cc]] < 0)
       if (neg_n > 0) {
         issues <- c(
           issues,
-          paste0("WaterQuality ", cc, " contains negative values / ", cc, " 存在负值行数: ", neg_n)
+          paste0("WaterQuality ", cc, " contains negative values / ", cc,
+                 " \u5b58\u5728\u8d1f\u503c\u884c\u6570: ", neg_n)
         )
       }
     }
 
     all_empty <- vapply(conc_cols, function(cc) all(is.na(df[[cc]])), logical(1))
     if (all(all_empty)) {
-      issues <- c(issues, "All concentration columns are empty / 所有浓度列均为空")
+      issues <- c(issues,
+                  "All concentration columns are empty / \u6240\u6709\u6d53\u5ea6\u5217\u5747\u4e3a\u7a7a")
+    }
+
+    # 每个指标的有效样本数
+    for (cc in conc_cols) {
+      n_valid <- sum(is.finite(df[[cc]]))
+      if (n_valid == 0) {
+        issues <- c(issues,
+                    paste0("WaterQuality ", cc, " has no valid values / ", cc, " \u65e0\u6709\u6548\u503c"))
+      }
     }
   }
 
-  list(data = df, issues = unique(issues))
+  # ★ 构建 wq_meta
+  wq_stations <- if ("STNM" %in% names(df))
+    unique(stats::na.omit(df$STNM)) else character(0)
+
+  wq_meta <- list(
+    constituent_cols = conc_cols,
+    n_samples        = nrow(df),
+    wq_stations      = wq_stations
+  )
+
+  list(
+    data    = df,
+    issues  = unique(issues),
+    wq_meta = wq_meta
+  )
 }
 
 
@@ -607,7 +717,8 @@ fw_validate_topology <- function(df) {
   if (length(miss) > 0) {
     issues <- c(
       issues,
-      paste0("Topology missing columns / Topology 缺少字段: ", paste(miss, collapse = ", "))
+      paste0("Topology missing columns / Topology \u7f3a\u5c11\u5b57\u6bb5: ",
+             paste(miss, collapse = ", "))
     )
     return(list(data = df, issues = unique(issues)))
   }
@@ -618,18 +729,19 @@ fw_validate_topology <- function(df) {
   df$WYBM_QF <- fw_trim_na(df$WYBM_QF)
 
   if (any(is.na(df$WYBM_WQ) | df$WYBM_WQ == "")) {
-    issues <- c(issues, "Topology contains empty WYBM_WQ / Topology 存在空的 WYBM_WQ")
+    issues <- c(issues, "Topology contains empty WYBM_WQ / Topology \u5b58\u5728\u7a7a\u7684 WYBM_WQ")
   }
 
   if (any(is.na(df$WYBM_QF) | df$WYBM_QF == "")) {
-    issues <- c(issues, "Topology contains empty WYBM_QF / Topology 存在空的 WYBM_QF")
+    issues <- c(issues, "Topology contains empty WYBM_QF / Topology \u5b58\u5728\u7a7a\u7684 WYBM_QF")
   }
 
   dup <- duplicated(df[, c("WYBM_QF", "WYBM_WQ")])
   if (any(dup, na.rm = TRUE)) {
     issues <- c(
       issues,
-      paste0("Topology contains duplicated mapping rows / Topology 存在重复映射行数: ", sum(dup, na.rm = TRUE))
+      paste0("Topology contains duplicated mapping rows / Topology \u5b58\u5728\u91cd\u590d\u6620\u5c04\u884c\u6570: ",
+             sum(dup, na.rm = TRUE))
     )
   }
 
@@ -648,7 +760,8 @@ fw_validate_cross_sheet <- function(lst) {
     wq_tm <- lst$WaterQuality$TM
 
     if (all(is.na(flow_tm)) || all(is.na(wq_tm))) {
-      issues <- c(issues, "Flow or WaterQuality date is all NA / Flow 或 WaterQuality 日期全为空")
+      issues <- c(issues,
+                  "Flow or WaterQuality date is all NA / Flow \u6216 WaterQuality \u65e5\u671f\u5168\u4e3a\u7a7a")
     } else {
       flow_range <- range(flow_tm, na.rm = TRUE)
       wq_range <- range(wq_tm, na.rm = TRUE)
@@ -657,7 +770,8 @@ fw_validate_cross_sheet <- function(lst) {
       overlap_end <- min(flow_range[2], wq_range[2])
 
       if (isTRUE(overlap_start > overlap_end)) {
-        issues <- c(issues, "Flow and WaterQuality have no overlapping date range / Flow 与 WaterQuality 时间范围没有重叠")
+        issues <- c(issues,
+                    "Flow and WaterQuality have no overlapping date range / Flow \u4e0e WaterQuality \u65f6\u95f4\u8303\u56f4\u6ca1\u6709\u91cd\u53e0")
       }
     }
   }
@@ -666,10 +780,9 @@ fw_validate_cross_sheet <- function(lst) {
 }
 
 
-
 # ---------------------------------------------------------
 # Build flux input by topology mapping (QF -> WQ)
-# 固定 target = "TN"
+# ★ target 改为动态参数，默认 "TN"
 # ---------------------------------------------------------
 fw_build_flux_input <- function(lst, target = "TN") {
   if (!all(c("Flow", "WaterQuality", "Topology") %in% names(lst))) {
@@ -731,8 +844,7 @@ fw_build_flux_input <- function(lst, target = "TN") {
 
 
 # ---------------------------------------------------------
-# Main function
-# 已移除 target 入参，固定 TN
+# Main function  ★ 收集 wq_meta 并传入 log
 # ---------------------------------------------------------
 fw_read_validate_workbook <- function(path, auto_impute_flow = TRUE) {
   stopifnot(file.exists(path))
@@ -793,13 +905,15 @@ fw_read_validate_workbook <- function(path, auto_impute_flow = TRUE) {
   issues <- character(0)
   flow_info <- NULL
   info_meta <- NULL
+  wq_meta   <- NULL    # ★ 新增
 
   required_sheets <- c("Info", "Flow", "WaterQuality")
   missing_sheets <- setdiff(required_sheets, names(clean_list))
   if (length(missing_sheets) > 0) {
     issues <- c(
       issues,
-      paste0("Missing required sheets / 缺少必需工作表: ", paste(missing_sheets, collapse = ", "))
+      paste0("Missing required sheets / \u7f3a\u5c11\u5fc5\u9700\u5de5\u4f5c\u8868: ",
+             paste(missing_sheets, collapse = ", "))
     )
   }
 
@@ -827,25 +941,28 @@ fw_read_validate_workbook <- function(path, auto_impute_flow = TRUE) {
     res <- fw_validate_wq(clean_list$WaterQuality)
     clean_list$WaterQuality <- res$data
     issues <- c(issues, res$issues)
+    wq_meta <- res$wq_meta    # ★ 新增
   }
 
   cross <- fw_validate_cross_sheet(clean_list)
   issues <- c(issues, cross$issues)
 
   log <- fw_format_ingest_log(
-    sheets = sheets,
-    issues = unique(issues),
+    sheets    = sheets,
+    issues    = unique(issues),
     flow_info = flow_info,
-    info_meta = info_meta
+    info_meta = info_meta,
+    wq_meta   = wq_meta    # ★ 新增
   )
 
   list(
-    sheets = sheets,
-    raw_list = raw_list,
+    sheets     = sheets,
+    raw_list   = raw_list,
     clean_list = clean_list,
-    issues = unique(issues),
-    flow_info = flow_info,
-    info_meta = info_meta,
-    log = log
+    issues     = unique(issues),
+    flow_info  = flow_info,
+    info_meta  = info_meta,
+    wq_meta    = wq_meta,    # ★ 新增：暴露给外部使用
+    log        = log
   )
 }

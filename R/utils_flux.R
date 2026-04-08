@@ -70,6 +70,173 @@ fw_trim_na <- function(x) {
   z
 }
 
+
+
+# ---------------------------------------------------------
+# fw_find_qf_cols
+# 在 QF (Flow) data.frame 中自动识别关键列
+# 返回命名列表：date, station_id, station_name, Q, ...
+# ---------------------------------------------------------
+
+# =============================================================
+# fw_find_qf_cols
+# 在 QF (Flow) data.frame 中自动识别所有关键列
+# 返回命名列表，包含主名称和别名，兼容 $dt / $q 等访问方式
+# =============================================================
+fw_find_qf_cols <- function(df) {
+
+  empty <- list(
+    date = NA_character_, dt = NA_character_,
+    station_id = NA_character_, station = NA_character_,
+    station_name = NA_character_,
+    Q = NA_character_, q = NA_character_,
+    Q_original = NA_character_,
+    Q_imputed  = NA_character_,
+    is_imputed = NA_character_,
+    flow_row_missing = NA_character_,
+    found   = FALSE,
+    missing = c("date", "station_id", "Q")
+  )
+
+  if (is.null(df) || !is.data.frame(df) || ncol(df) == 0) return(empty)
+
+  nms <- names(df)
+
+
+  # ---- 日期列 ----
+  date_cands <- c("TM", "tm", "Tm",
+                  "date", "Date", "DATE",
+                  "datetime", "Datetime", "DATETIME",
+                  "time", "Time", "TIME",
+                  "\u65e5\u671f")
+  date_col <- intersect(date_cands, nms)
+  date_col <- if (length(date_col) > 0) date_col[1] else NA_character_
+
+
+  # ---- 站点编码列（唯一标识） ----
+  id_cands <- c("WYBM", "wybm",
+                "station_id", "StationID", "stationId",
+                "site_no", "site", "Site", "SITE",
+                "station_code", "StationCode",
+                "\u6c34\u6e90\u6807\u7801")
+  id_col <- intersect(id_cands, nms)
+  id_col <- if (length(id_col) > 0) id_col[1] else NA_character_
+
+
+  # ---- 站点名称列 ----
+  name_cands <- c("STNM", "stnm",
+                  "station", "Station", "STATION",
+                  "station_name", "StationName", "stationName",
+                  "site_name", "SiteName",
+                  "\u7ad9\u70b9", "\u7ad9\u540d")
+  name_col <- intersect(name_cands, nms)
+  name_col <- if (length(name_col) > 0) name_col[1] else NA_character_
+
+
+  # ---- 流量列 ----
+  q_cands <- c("Q", "q",
+               "flow", "Flow", "FLOW",
+               "discharge", "Discharge",
+               "Q_m3s", "q_m3s",
+               "\u6d41\u91cf")
+  q_col <- intersect(q_cands, nms)
+  q_col <- if (length(q_col) > 0) q_col[1] else NA_character_
+
+
+  # ---- 原始流量列 ----
+  qorig_col <- intersect(c("Q_original", "q_original", "Qorig", "Q_orig"), nms)
+  qorig_col <- if (length(qorig_col) > 0) qorig_col[1] else NA_character_
+
+  # ---- 插补流量列 ----
+  qimp_col <- intersect(c("Q_imputed", "q_imputed", "Qimp"), nms)
+  qimp_col <- if (length(qimp_col) > 0) qimp_col[1] else NA_character_
+
+  # ---- 是否插补标记 ----
+  imp_col <- intersect(c("is_imputed", "imputed", "Is_Imputed"), nms)
+  imp_col <- if (length(imp_col) > 0) imp_col[1] else NA_character_
+
+  # ---- 缺失行标记 ----
+  miss_col <- intersect(c("flow_row_missing", "row_missing", "gap"), nms)
+  miss_col <- if (length(miss_col) > 0) miss_col[1] else NA_character_
+
+
+  # ---- 汇总 ----
+  required     <- c(date = date_col, station_id = id_col, Q = q_col)
+  missing_keys <- names(required)[is.na(required)]
+  found        <- length(missing_keys) == 0
+
+  list(
+    # 主名称
+    date             = date_col,
+    station_id       = id_col,
+    station_name     = name_col,
+    Q                = q_col,
+    Q_original       = qorig_col,
+    Q_imputed        = qimp_col,
+    is_imputed       = imp_col,
+    flow_row_missing = miss_col,
+
+    # 别名（兼容调用方使用 $dt / $q / $station）
+    dt               = date_col,
+    q                = q_col,
+    station          = id_col,
+
+    found            = found,
+    missing          = missing_keys
+  )
+}
+
+
+# =============================================================
+# fw_find_wq_dt_col
+# 在 WQ (WaterQuality) data.frame 中自动识别日期列
+# 返回: 列名字符串（长度1），找不到时返回 NA_character_
+# =============================================================
+fw_find_wq_dt_col <- function(df) {
+
+  if (is.null(df) || !is.data.frame(df) || ncol(df) == 0) return(NA_character_)
+
+  nms <- names(df)
+
+  # ---------- 按优先级匹配候选列名 ----------
+  dt_cands <- c(
+    "TM", "tm", "Tm",
+    "date", "Date", "DATE",
+    "datetime", "Datetime", "DATETIME",
+    "SampleDate", "sampleDate", "sample_date",
+    "SamplingDate", "sampling_date",
+    "time", "Time", "TIME",
+    "\u65e5\u671f",            # 日期
+    "\u91c7\u6837\u65e5\u671f" # 采样日期
+  )
+
+  hit <- intersect(dt_cands, nms)
+
+  if (length(hit) > 0) return(hit[1])
+
+  # ---------- 回退：按列类型猜测 ----------
+  for (nm in nms) {
+    col <- df[[nm]]
+    if (inherits(col, "POSIXct") || inherits(col, "POSIXt") || inherits(col, "Date")) {
+      return(nm)
+    }
+  }
+
+  NA_character_
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ---------- 列识别 ----------
 
 fw_find_flux_cols <- function(df) {
@@ -265,4 +432,65 @@ fw_fill_daily_id_from_source <- function(daily, src, target_col, cand_cols) {
   }
   daily[[target_col]][miss] <- fill_val
   daily
+}
+
+
+# =============================================================
+# 通量汇总表（按月/按年汇总 daily 表）
+# =============================================================
+fw_make_flux_summary_table <- function(daily) {
+  if (is.null(daily) || !is.data.frame(daily) || nrow(daily) == 0)
+    return(data.frame(period = character(0), total_flux_kg = numeric(0),
+                      mean_Q = numeric(0), mean_C_est = numeric(0),
+                      n_days = integer(0), stringsAsFactors = FALSE))
+
+  daily$date <- fw_as_date(daily$date)
+  daily <- daily[!is.na(daily$date), , drop = FALSE]
+  if (nrow(daily) == 0)
+    return(data.frame(period = character(0), total_flux_kg = numeric(0),
+                      mean_Q = numeric(0), mean_C_est = numeric(0),
+                      n_days = integer(0), stringsAsFactors = FALSE))
+
+  daily$ym <- format(daily$date, "%Y-%m")
+  daily$yr <- format(daily$date, "%Y")
+
+  flux_col <- if ("flux" %in% names(daily)) "flux" else
+    if ("load_kgd" %in% names(daily)) "load_kgd" else NULL
+  q_col    <- if ("Q" %in% names(daily)) "Q" else NULL
+  c_col    <- if ("C_est" %in% names(daily)) "C_est" else NULL
+
+  # ---- 按月汇总 ----
+  monthly <- do.call(rbind, lapply(split(daily, daily$ym), function(sub) {
+    data.frame(
+      period       = sub$ym[1],
+      total_flux_kg = if (!is.null(flux_col)) round(sum(fw_as_num(sub[[flux_col]]), na.rm = TRUE), 4) else NA_real_,
+      mean_Q       = if (!is.null(q_col))    round(mean(fw_as_num(sub[[q_col]]), na.rm = TRUE), 4) else NA_real_,
+      mean_C_est   = if (!is.null(c_col))    round(mean(fw_as_num(sub[[c_col]]), na.rm = TRUE), 6) else NA_real_,
+      n_days       = nrow(sub),
+      stringsAsFactors = FALSE)
+  }))
+
+  # ---- 按年汇总 ----
+  yearly <- do.call(rbind, lapply(split(daily, daily$yr), function(sub) {
+    data.frame(
+      period       = paste0(sub$yr[1], " \u5e74\u5408\u8ba1"),
+      total_flux_kg = if (!is.null(flux_col)) round(sum(fw_as_num(sub[[flux_col]]), na.rm = TRUE), 4) else NA_real_,
+      mean_Q       = if (!is.null(q_col))    round(mean(fw_as_num(sub[[q_col]]), na.rm = TRUE), 4) else NA_real_,
+      mean_C_est   = if (!is.null(c_col))    round(mean(fw_as_num(sub[[c_col]]), na.rm = TRUE), 6) else NA_real_,
+      n_days       = nrow(sub),
+      stringsAsFactors = FALSE)
+  }))
+
+  # ---- 总计行 ----
+  total_row <- data.frame(
+    period       = "\u603b\u8ba1",
+    total_flux_kg = if (!is.null(flux_col)) round(sum(fw_as_num(daily[[flux_col]]), na.rm = TRUE), 4) else NA_real_,
+    mean_Q       = if (!is.null(q_col))    round(mean(fw_as_num(daily[[q_col]]), na.rm = TRUE), 4) else NA_real_,
+    mean_C_est   = if (!is.null(c_col))    round(mean(fw_as_num(daily[[c_col]]), na.rm = TRUE), 6) else NA_real_,
+    n_days       = nrow(daily),
+    stringsAsFactors = FALSE)
+
+  out <- rbind(monthly, yearly, total_row)
+  rownames(out) <- NULL
+  out
 }
