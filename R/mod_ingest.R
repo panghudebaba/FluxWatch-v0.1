@@ -142,15 +142,30 @@ fw_round_numeric_object <- function(x, digits = 3) {
 # helper: 查找示例文件
 # =========================================================
 fw_find_example_files <- function() {
+  # 1) 优先：工作目录下的 csv/
   data_dir <- file.path(getwd(), "csv")
+
+  # 2) 回退：尝试从包的 inst/app/csv 查找（打包后才生效）
   if (!dir.exists(data_dir)) {
-    app_dir <- system.file("app", package = .packageName %||% "")
-    if (nzchar(app_dir)) data_dir <- file.path(app_dir, "csv")
+    pkg <- tryCatch(utils::packageName(), error = function(e) NULL)
+    if (!is.null(pkg) && nzchar(pkg)) {
+      app_dir <- system.file("app", package = pkg)
+      if (nzchar(app_dir)) data_dir <- file.path(app_dir, "csv")
+    }
   }
+
+  # 3) 回退：开发阶段 inst/app/csv
+  if (!dir.exists(data_dir)) {
+    candidate <- file.path("inst", "app", "csv")
+    if (dir.exists(candidate)) data_dir <- candidate
+  }
+
   if (!dir.exists(data_dir)) return(character(0))
+
   list.files(data_dir, pattern = "\\.(xlsx|xls|csv)$",
              full.names = TRUE, ignore.case = TRUE)
 }
+
 
 
 mod_ingest_server <- function(id, rv) {

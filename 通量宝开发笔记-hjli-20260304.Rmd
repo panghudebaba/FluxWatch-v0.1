@@ -266,7 +266,7 @@ gert::git_status(repo = git_dir)
 gert::git_add(".", repo = git_dir)
 
 # 提交更改（生成一个版本）
-gert::git_commit("版本18", repo = git_dir)
+gert::git_commit("版本19", repo = git_dir)
 
 # 推送更改到远程仓库
 gert::git_push()
